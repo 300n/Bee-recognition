@@ -3,7 +3,7 @@ import numpy as np
 import os
 import random
 
-def compute_background_model(image_folder, num_samples=100):
+def compute_background_model(image_folder, num_samples):
     """
     Calcule la médiane temporelle pour créer une image de la ruche 'vide'.
     """
@@ -11,7 +11,7 @@ def compute_background_model(image_folder, num_samples=100):
     sample_paths = random.sample(all_images, min(num_samples, len(all_images)))
     
     samples = []
-    print(f"Chargement de {len(sample_paths)} échantillons pour le modèle de fond...")
+    print(f"Chargement de {num_samples} échantillons pour le modèle de fond...")
     
     for path in sample_paths:
         img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
@@ -27,8 +27,8 @@ def compute_background_model(image_folder, num_samples=100):
     return background_median
 
 # --- Paramétrage ---
-folder_path = 'chemin/vers/tes/images'
-bg_model = compute_background_model(folder_path)
+folder_path = '/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/images_crop'
+bg_model = compute_background_model(folder_path,200)
 cv2.imwrite('hive_background_reference.jpg', bg_model)
 
 def isolate_bees(current_image_path, background_model):
@@ -58,7 +58,7 @@ def isolate_bees(current_image_path, background_model):
     return result, clean
 
 # --- Test sur une image ---
-final_bees, mask = isolate_bees('/Users/valentindaveau/Downloads/1499.png', bg_model)
+final_bees, mask = isolate_bees('/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/images_crop/1297.png', bg_model)
 
 # Visualisation rapide
 cv2.imshow('Abeilles Isolees', cv2.resize(final_bees, (800, 800)))

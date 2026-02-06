@@ -3,80 +3,111 @@ import numpy as np
 import os
 import glob
 import random
+from concurrent.futures import ProcessPoolExecutor
+from functools import partial
+import multiprocessing
 
-def align_image_ecc(ref_img, target_img):
+# --- 1. FONCTIONS CŒUR (Multiprocessing & Alignement) ---
+
+def worker_align_ecc(target_path, ref_img_small, scale=0.2):
     """
-    Aligne l'image cible sur l'image de référence en utilisant l'algorithme ECC.
-    Pour la rapidité sur 3536px, le calcul se fait sur une image réduite.
+    Fonction exécutée par les workers CPU pour aligner une image.
     """
-    # 1. Redimensionnement pour accélérer le calcul de la matrice de transformation
-    scale = 0.2
-    ref_small = cv2.resize(ref_img, None, fx=scale, fy=scale)
-    target_small = cv2.resize(target_img, None, fx=scale, fy=scale)
-
-    # 2. Définir le modèle de mouvement (Translation est souvent suffisant pour des vibrations)
-    warp_mode = cv2.MOTION_TRANSLATION
-    warp_matrix = np.eye(2, 3, dtype=np.float32)
-
-    # 3. Paramètres de l'algorithme
-    criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 50, 0.001)
-
     try:
-        # Trouver la transformation sur la petite image
-        (_, warp_matrix) = cv2.findTransformECC(ref_small, target_small, warp_matrix, warp_mode, criteria)
+        # Lecture
+        target_img = cv2.imread(target_path, cv2.IMREAD_GRAYSCALE)
+        if target_img is None: return None
+
+        # Redimensionnement pour calcul rapide de la matrice
+        target_small = cv2.resize(target_img, None, fx=scale, fy=scale)
         
-        # Ajuster la matrice pour la taille réelle
-        warp_matrix[0, 2] /= scale
-        warp_matrix[1, 2] /= scale
+        # Paramètres ECC
+        warp_mode = cv2.MOTION_TRANSLATION
+        warp_matrix = np.eye(2, 3, dtype=np.float32)
+        criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 50, 0.001)
 
-        # Appliquer la transformation à l'image haute résolution
-        aligned_img = cv2.warpAffine(target_img, warp_matrix, (target_img.shape[1], target_img.shape[0]), 
-                                     flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
-        return aligned_img
-    except:
-        # Si l'alignement échoue (mouvement trop brusque), on renvoie l'image originale
-        return target_img
+        try:
+            # Calcul de la matrice de transformation (sur petite image)
+            (_, warp_matrix) = cv2.findTransformECC(ref_img_small, target_small, warp_matrix, warp_mode, criteria)
+            
+            # Mise à l'échelle pour l'image HD
+            warp_matrix[0, 2] /= scale
+            warp_matrix[1, 2] /= scale
+            
+            # Application de la transformation
+            aligned_img = cv2.warpAffine(target_img, warp_matrix, (target_img.shape[1], target_img.shape[0]), 
+                                         flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
+            return aligned_img
+        except:
+            # Si l'alignement échoue, on renvoie l'originale
+            return target_img
 
-def build_master_pattern(folder_path, num_samples=50):
+    except Exception as e:
+        print(f"Erreur worker : {e}")
+        return None
+
+def build_master_pattern_multicore(folder_path, num_samples=100):
     """
-    Crée le pattern statique des alvéoles en alignant un échantillon d'images.
+    Construit l'image de référence (ruche vide) en utilisant le CPU multicœur.
     """
     files = glob.glob(os.path.join(folder_path, "*.png"))
-    if not files: return None
+    # Support pour .jpg si nécessaire
+    if not files: files = glob.glob(os.path.join(folder_path, "*.jpg"))
     
+    if not files: 
+        print("Erreur : Aucun fichier image trouvé pour créer le pattern.")
+        return None
+    
+    # Échantillonnage
     sample_files = random.sample(files, min(num_samples, len(files)))
     
-    # On prend la première image comme référence pour l'alignement
-    ref_img = cv2.imread(sample_files[0], cv2.IMREAD_GRAYSCALE)
+    # Initialisation avec la première image
+    ref_path = sample_files[0]
+    ref_img = cv2.imread(ref_path, cv2.IMREAD_GRAYSCALE)
+    if ref_img is None: return None
+    
+    # Version réduite pour référence (optimisation vitesse)
+    scale = 0.2
+    ref_small = cv2.resize(ref_img, None, fx=scale, fy=scale)
+    
+    targets_to_process = sample_files[1:]
+    num_cores = max(1, multiprocessing.cpu_count() - 1)
+    
+    print(f"--- Construction du Master Pattern ({len(sample_files)} images sur {num_cores} cœurs) ---")
+    
     aligned_stack = [ref_img]
+    worker_func = partial(worker_align_ecc, ref_img_small=ref_small, scale=scale)
 
-    print(f"Construction du Pattern Maître avec {len(sample_files)} images...")
-    for i in range(1, len(sample_files)):
-        img = cv2.imread(sample_files[i], cv2.IMREAD_GRAYSCALE)
-        if img is not None:
-            aligned = align_image_ecc(ref_img, img)
-            aligned_stack.append(aligned)
-        if i % 10 == 0: print(f" Alignement : {i}/{len(sample_files)}")
-
-    # Calcul de la médiane pour effacer les abeilles et garder les alvéoles
+    with ProcessPoolExecutor(max_workers=num_cores) as executor:
+        results = executor.map(worker_func, targets_to_process)
+        for res in results:
+            if res is not None:
+                aligned_stack.append(res)
+    
+    print("Calcul de la médiane...")
     master_pattern = np.median(np.stack(aligned_stack), axis=0).astype(np.uint8)
     return master_pattern
 
-def show_final_result(image_path, master_pattern, r=55, threshold_val=100):
+# --- 2. FONCTION DE TRAITEMENT ET VISUALISATION ---
+
+def process_and_compare(image_path, master_pattern, r, threshold_val, output_folder):
     """
-    Affiche l'image originale avec les abeilles en rouge basées sur la corrélation.
+    Traite une image et sauvegarde une comparaison Avant/Après.
     """
+    # A. Chargement
     img_original = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     if img_original is None: return
 
-    # 1. Alignement de l'image actuelle sur le master pattern
-    img_aligned = align_image_ecc(master_pattern, img_original)
+    # B. Alignement sur le Master Pattern (Indispensable !)
+    # On réutilise la logique d'alignement pour que la soustraction soit parfaite
+    scale = 0.2
+    ref_small = cv2.resize(master_pattern, None, fx=scale, fy=scale)
+    img_aligned = worker_align_ecc(image_path, ref_small, scale) # Appel direct (pas besoin de pool ici pour 1 image)
+    if img_aligned is None: img_aligned = img_original
 
-    # 2. Détection de la "Chaleur" (Différence entre image et ruche vide)
-    # On utilise la FFT sur la différence pour lisser les micro-résidus
+    # C. Détection (Différence + FFT)
     diff = cv2.absdiff(img_aligned, master_pattern)
     
-    # Filtrage FFT pour isoler les formes organiques (abeilles)
     dft = cv2.dft(np.float32(diff), flags=cv2.DFT_COMPLEX_OUTPUT)
     dft_shift = np.fft.fftshift(dft)
     rows, cols = diff.shape
@@ -84,34 +115,78 @@ def show_final_result(image_path, master_pattern, r=55, threshold_val=100):
     cv2.circle(mask_fft, (cols//2, rows//2), r, (1, 1), -1)
     
     img_back = cv2.idft(np.fft.ifftshift(dft_shift * mask_fft))
-    heatmap_values = cv2.magnitude(img_back[:, :, 0], img_back[:, :, 1])
-    cv2.normalize(heatmap_values, heatmap_values, 0, 255, cv2.NORM_MINMAX)
-    heatmap_values = heatmap_values.astype(np.uint8)
+    heatmap = cv2.magnitude(img_back[:, :, 0], img_back[:, :, 1])
+    cv2.normalize(heatmap, heatmap, 0, 255, cv2.NORM_MINMAX)
+    heatmap = heatmap.astype(np.uint8)
 
-    # 3. Logique Conditionnelle
-    result = cv2.cvtColor(img_original, cv2.COLOR_GRAY2BGR)
-    mask_bees = heatmap_values > threshold_val
+    # D. Création du visuel "Détection"
+    result_bgr = cv2.cvtColor(img_aligned, cv2.COLOR_GRAY2BGR)
+    mask_bees = heatmap > threshold_val
+    
+    # Coloration en Rouge
+    result_bgr[mask_bees, 0] = 0   
+    result_bgr[mask_bees, 1] = 0   
+    result_bgr[mask_bees, 2] = 255 
 
-    # Coloration Rouge Dynamique
-    result[mask_bees, 0] = 0   # Bleu
-    result[mask_bees, 1] = 0   # Vert
-    result[mask_bees, 2] = 255 # Rouge
+    # E. Création du panneau Avant/Après (Side-by-Side)
+    original_bgr = cv2.cvtColor(img_original, cv2.COLOR_GRAY2BGR)
+    
+    # Ajout de texte pour identifier
+    cv2.putText(original_bgr, "Original (Raw)", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 255, 0), 5)
+    cv2.putText(result_bgr, f"Detection (t={threshold_val})", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 5)
 
-    # 4. Affichage
-    display = cv2.resize(result, (1200, 800))
-    cv2.imshow(f"Analyse Finale - r={r} t={threshold_val}", display)
-    print("Fenêtre ouverte. Appuyez sur une touche pour quitter.")
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # Concatenation horizontale
+    comparison = cv2.hconcat([original_bgr, result_bgr])
+    
+    # Sauvegarde
+    filename = "COMPARE_" + os.path.basename(image_path)
+    save_path = os.path.join(output_folder, filename)
+    cv2.imwrite(save_path, comparison)
+    print(f"--> Résultat généré : {filename}")
 
-# ================= EXÉCUTION =================
-# Chemins
-FOLDER_CROP = '/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/images_crop'
-TEST_IMAGE = '/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/images_crop/1297.png'
+# ================= 3. EXÉCUTION PRINCIPALE =================
 
-# 1. Générer le pattern universel des alvéoles (à faire une seule fois)
-master_hive = build_master_pattern(FOLDER_CROP, num_samples=40)
+if __name__ == '__main__':
+    # --- CONFIGURATION ---
+    # Dossier contenant tes 8000 images (pour construire le pattern)
+    FOLDER_SOURCE = '/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/images_crop'
+    
+    # Dossier contenant tes images de test spécifiques
+    FOLDER_TEST = '/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/images_test'
+    
+    # Dossier de sortie des résultats
+    FOLDER_OUTPUT = '/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/Resultats_Test'
+    
+    # Paramètres de détection (à ajuster selon tes tests précédents)
+    R_PARAM = 60
+    THRESH_PARAM = 110
 
-# 2. Lancer la visualisation
-if master_hive is not None:
-    show_final_result(TEST_IMAGE, master_hive, r=60, threshold_val=110)
+    # Création du dossier de sortie
+    if not os.path.exists(FOLDER_OUTPUT):
+        os.makedirs(FOLDER_OUTPUT)
+
+    # ÉTAPE 1 : Générer (ou charger) le Pattern Maître
+    # On utilise le dossier source (crop) pour avoir une bonne statistique
+    master_hive = build_master_pattern_multicore(FOLDER_SOURCE, num_samples=50)
+    
+    if master_hive is not None:
+        # Sauvegarde du pattern pour info
+        cv2.imwrite(os.path.join(FOLDER_OUTPUT, "MASTER_PATTERN.png"), master_hive)
+
+        # ÉTAPE 2 : Récupérer les 10 images de test
+        # On cherche les .png et .jpg
+        test_files = glob.glob(os.path.join(FOLDER_TEST, "*.png")) + glob.glob(os.path.join(FOLDER_TEST, "*.jpg"))
+        test_files.sort() # Pour avoir un ordre constant
+        
+        # On ne garde que les 10 premiers (ou moins si y'en a pas 10)
+        subset_test = test_files[:10]
+        
+        print(f"\n--- Lancement du test sur {len(subset_test)} images ---")
+        
+        # ÉTAPE 3 : Boucle de traitement
+        for img_path in subset_test:
+            process_and_compare(img_path, master_hive, R_PARAM, THRESH_PARAM, FOLDER_OUTPUT)
+            
+        print(f"\nTerminé ! Ouvre le dossier : {FOLDER_OUTPUT}")
+    else:
+        print("Échec de la création du Master Pattern.")

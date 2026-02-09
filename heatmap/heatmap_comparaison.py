@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 # ================= CONFIGURATION GLOBALE =================
 INPUT_IMAGE_PATH = '/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/images_crop/1297.png'
-OUTPUT_DIR = '/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/Output/heatmap'
+OUTPUT_DIR = '/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/Output/heatmap_v2'
 
 # Paramètres de la grille (Grid Search)
 # Lignes de la grille

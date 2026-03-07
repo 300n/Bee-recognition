@@ -4,8 +4,8 @@ import os
 import matplotlib.pyplot as plt
 
 # ================= CONFIGURATION GLOBALE =================
-INPUT_IMAGE_PATH = "/Volumes/Seagate/Final_videos/Mc01/M01C01_003471.png"
-OUTPUT_DIR = "/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/Output/heatmap_final_images"
+INPUT_IMAGE_PATH = "/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/images2_crop/M01C02_030004.png"
+OUTPUT_DIR = "/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/Output/heatmap_final_images_MC02_v2"
 
 # Paramètres de la grille (Grid Search)
 # Lignes de la grille

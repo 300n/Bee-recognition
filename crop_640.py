@@ -7,8 +7,8 @@ input_dir = "/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/images2_cr
 output_dir = "/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/images2_64"
 
 # Paramètres
-tile_size = 64
-max_images = 10  # Définition de votre limite
+tile_size = 424
+max_images = 100  # Définition de votre limite
 
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)

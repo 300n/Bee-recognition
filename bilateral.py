@@ -11,9 +11,7 @@ from tqdm import tqdm
 img_path = "/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/images2_crop/M01C02_000066.png"
 
 # Dossier où les dizaines de tests seront sauvegardés
-output_dir = (
-    "/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/tests_bilateral_grille_2"
-)
+output_dir = "/Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/Output/tests_bilateral_grille_4"
 
 # Création du dossier s'il n'existe pas
 if not os.path.exists(output_dir):
@@ -24,10 +22,10 @@ if not os.path.exists(output_dir):
 # ==========================================
 # On définit des listes de valeurs à tester.
 # d : de 9 (petit patch) à 50 (très grand patch, va lisser de larges zones)
-d_values = [9, 15, 30, 50]
+d_values = [30, 50, 70, 90, 110]
 
 # sigmaColor : de 50 (préserve les contrastes) à 200 (mélange presque tout, casse les arêtes des alvéoles)
-sigma_color_values = [50, 100, 150, 200]
+sigma_color_values = [10, 20, 30]
 
 # sigmaSpace : de 50 (lissage local) à 200 (lissage sur une très grande distance)
 sigma_space_values = [50, 100, 200]

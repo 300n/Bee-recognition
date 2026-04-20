@@ -1,0 +1,13 @@
+# YOLOv8-pose dataset — bee keypoints
+path: /Users/noledge/ª/Cø/(TC 8.1) - Mission R&D/B E E/train/datasets/bee_yolo
+train: images/train
+val:   images/val
+test:  images/test
+
+kpt_shape: [3, 3]   # [num_keypoints, (x y visibility)]
+flip_idx:  [0, 1, 2]       # symmetric mapping for h-flip augmentation
+
+nc: 2
+names:
+  0: cleaning bee
+  1: normal bee

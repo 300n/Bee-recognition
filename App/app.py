@@ -662,9 +662,11 @@ app.config["MAX_CONTENT_LENGTH"] = 512 * 1024 * 1024   # 512 MB — allow large 
 
 @app.route("/")
 def index():
+    epoch    = _ckpt["epoch"]    if _ckpt else "—"
+    val_loss = f"{_ckpt['val_loss']:.4f}" if _ckpt else "—"
     return render_template("index.html",
-                           model_epoch=_ckpt["epoch"],
-                           val_loss=f"{_ckpt['val_loss']:.4f}",
+                           model_epoch=epoch,
+                           val_loss=val_loss,
                            device=str(DEVICE))
 
 
@@ -821,6 +823,177 @@ def yolo_pipeline_results():
     with open(rpath) as f:
         results = json.load(f)
     return jsonify({"results": results, "status": "ok"})
+
+
+@app.route("/pipeline_charts")
+def pipeline_charts():
+    """
+    Generate matplotlib evaluation charts from pipeline_results.json (KRCNN).
+    Returns up to 3 base64 PNGs:
+      1. F1 horizontal bar chart (all 18 pipelines, sorted)
+      2. Precision-Recall scatter (one dot per pipeline, labeled)
+      3. PR curves (one curve per pipeline, overlaid)
+    """
+    rpath = config.OUTPUT_DIR / "pipeline_results.json"
+    if not rpath.exists():
+        return jsonify({"error": "No KRCNN pipeline results yet."}), 404
+
+    with open(rpath) as f:
+        results = json.load(f)
+
+    if not results:
+        return jsonify({"error": "Pipeline results file is empty."}), 404
+
+    # Filter to KRCNN results that have the richer metric set
+    krcnn = [r for r in results if "f1" in r.get("metrics", {})]
+    if not krcnn:
+        return jsonify({"error": "No KRCNN metrics found (run pipeline_train.py first)."}), 404
+
+    krcnn.sort(key=lambda r: r["metrics"].get("f1", 0), reverse=True)
+
+    CONTRAST_COLORS = {"original": "#4a9eff", "clahe": "#7ed321", "retinex": "#f5a623"}
+    FILTER_LABELS   = {
+        "bilateral": "Bilateral", "nlm": "NLM", "bm3d": "BM3D",
+        "snn": "SNN", "kramer_bruckner": "KB", "epoaf": "EPOAF",
+    }
+
+    def _label(r):
+        parts = r["pipeline"].split("_", 1)
+        return f"{parts[0].upper()} + {FILTER_LABELS.get(parts[1], parts[1]) if len(parts)>1 else ''}"
+
+    def _bar_color(r):
+        c = r["pipeline"].split("_", 1)[0]
+        return CONTRAST_COLORS.get(c, "#aaaaaa")
+
+    def _fig_to_b64(fig):
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=100, bbox_inches="tight",
+                    facecolor=fig.get_facecolor())
+        plt.close(fig)
+        return base64.b64encode(buf.getvalue()).decode()
+
+    charts = {}
+
+    # ── Chart 1: F1 bar chart ─────────────────────────────────────────────────
+    labels = [_label(r) for r in krcnn]
+    f1s    = [r["metrics"]["f1"]        for r in krcnn]
+    precs  = [r["metrics"]["precision"] for r in krcnn]
+    recs   = [r["metrics"]["recall"]    for r in krcnn]
+    aps    = [r["metrics"].get("ap", 0) for r in krcnn]
+    colors = [_bar_color(r)             for r in krcnn]
+
+    n = len(krcnn)
+    fig, ax = plt.subplots(figsize=(9, max(3, n * 0.42)))
+    fig.patch.set_facecolor("#1a1d27")
+    ax.set_facecolor("#22263a")
+
+    y = np.arange(n)
+    bars = ax.barh(y, f1s, color=colors, alpha=0.85, height=0.55)
+    ax.barh(y, aps, color=colors, alpha=0.30, height=0.55, label="AP")
+
+    for bar, v in zip(bars, f1s):
+        ax.text(min(v + 0.012, 0.98), bar.get_y() + bar.get_height()/2,
+                f"{v:.3f}", va="center", ha="left", fontsize=8,
+                color="white", fontweight="bold")
+
+    ax.set_yticks(y)
+    ax.set_yticklabels(labels, fontsize=8.5, color="white")
+    ax.set_xlim(0, 1.0)
+    ax.set_xlabel("Score", color="white", fontsize=9)
+    ax.set_title("F1 (opaque) & AP (transparent) par pipeline — KRCNN",
+                 color="white", fontsize=10, pad=10)
+    ax.tick_params(colors="white")
+    for sp in ax.spines.values():
+        sp.set_edgecolor("#444")
+    ax.xaxis.grid(True, alpha=0.2, color="white")
+    ax.set_axisbelow(True)
+
+    # Legend: contrast colors
+    from matplotlib.patches import Patch
+    legend = [Patch(color=c, label=k.upper())
+              for k, c in CONTRAST_COLORS.items()]
+    ax.legend(handles=legend, fontsize=7, framealpha=0.3,
+              labelcolor="white", facecolor="#22263a", edgecolor="#444",
+              loc="lower right")
+    fig.tight_layout()
+    charts["bar_f1"] = _fig_to_b64(fig)
+
+    # ── Chart 2: Precision-Recall scatter ─────────────────────────────────────
+    fig, ax = plt.subplots(figsize=(7, 6))
+    fig.patch.set_facecolor("#1a1d27")
+    ax.set_facecolor("#22263a")
+
+    for r, p, re, col in zip(krcnn, precs, recs, [_bar_color(r) for r in krcnn]):
+        ax.scatter(re, p, color=col, s=80, alpha=0.85, zorder=3)
+        ax.annotate(_label(r), (re, p), textcoords="offset points",
+                    xytext=(5, 3), fontsize=6.5, color="white", alpha=0.85)
+
+    # Iso-F1 curves
+    x_iso = np.linspace(0.01, 1.0, 200)
+    for iso_f1 in [0.3, 0.5, 0.7, 0.9]:
+        y_iso = iso_f1 * x_iso / (2 * x_iso - iso_f1 + 1e-10)
+        mask  = (y_iso >= 0) & (y_iso <= 1)
+        ax.plot(x_iso[mask], y_iso[mask], "--", color="white", alpha=0.12, lw=0.8)
+        idx = np.argmin(np.abs(x_iso[mask] - 0.85))
+        ax.text(x_iso[mask][idx], y_iso[mask][idx] + 0.01,
+                f"F1={iso_f1:.1f}", fontsize=6, color="white", alpha=0.35)
+
+    ax.set_xlim(-0.02, 1.05)
+    ax.set_ylim(-0.02, 1.05)
+    ax.set_xlabel("Recall", color="white", fontsize=10)
+    ax.set_ylabel("Precision", color="white", fontsize=10)
+    ax.set_title("Precision vs Recall — 18 pipelines KRCNN", color="white", fontsize=10)
+    ax.tick_params(colors="white")
+    for sp in ax.spines.values():
+        sp.set_edgecolor("#444")
+    ax.grid(True, alpha=0.15, color="white")
+
+    legend = [Patch(color=c, label=k.upper()) for k, c in CONTRAST_COLORS.items()]
+    ax.legend(handles=legend, fontsize=8, framealpha=0.3,
+              labelcolor="white", facecolor="#22263a", edgecolor="#444")
+    fig.tight_layout()
+    charts["scatter_pr"] = _fig_to_b64(fig)
+
+    # ── Chart 3: PR curves (one per pipeline) ─────────────────────────────────
+    has_curves = any("pr_curve" in r.get("metrics", {}) and
+                     r["metrics"]["pr_curve"].get("recall")
+                     for r in krcnn)
+    if has_curves:
+        fig, ax = plt.subplots(figsize=(8, 6))
+        fig.patch.set_facecolor("#1a1d27")
+        ax.set_facecolor("#22263a")
+
+        alpha_step = max(0.25, 1.0 / max(len(krcnn), 1))
+        for i, r in enumerate(krcnn):
+            prc = r["metrics"].get("pr_curve", {})
+            if not prc.get("recall"):
+                continue
+            rec_pts  = prc["recall"]
+            prec_pts = prc["precision"]
+            col      = _bar_color(r)
+            lw       = 2.0 if i == 0 else 1.0
+            alpha    = 1.0 if i == 0 else max(0.30, 0.85 - i * alpha_step * 0.5)
+            ax.plot(rec_pts, prec_pts, color=col, lw=lw, alpha=alpha,
+                    label=f"{_label(r)} AP={r['metrics'].get('ap', 0):.2f}")
+
+        ax.set_xlim(-0.02, 1.05)
+        ax.set_ylim(-0.02, 1.05)
+        ax.set_xlabel("Recall", color="white", fontsize=10)
+        ax.set_ylabel("Precision", color="white", fontsize=10)
+        ax.set_title("Courbes Precision-Recall — 18 pipelines KRCNN\n"
+                     "(IoU ≥ 0.5, matching global par score décroissant)",
+                     color="white", fontsize=9)
+        ax.tick_params(colors="white")
+        for sp in ax.spines.values():
+            sp.set_edgecolor("#444")
+        ax.grid(True, alpha=0.15, color="white")
+        ax.legend(fontsize=6.5, framealpha=0.35, labelcolor="white",
+                  facecolor="#1a1d27", edgecolor="#444",
+                  ncol=2, loc="lower left")
+        fig.tight_layout()
+        charts["pr_curves"] = _fig_to_b64(fig)
+
+    return jsonify(charts)
 
 
 @app.route("/predict_yolo", methods=["POST"])

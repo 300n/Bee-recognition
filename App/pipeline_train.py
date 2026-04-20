@@ -70,79 +70,184 @@ def _box_iou(a, b):
     return inter / ua if ua > 0 else 0.0
 
 
+def _compute_pr_curve(scores, tp_flags, n_gt, n_points=60):
+    """
+    Compute precision-recall curve from per-detection scores and TP/FP flags.
+    Uses the standard PASCAL VOC greedy matching approach (already applied upstream).
+    Returns sampled curve + AP (area under PR curve via trapezoid rule).
+    """
+    if not scores or n_gt == 0:
+        return {"precision": [], "recall": [], "thresholds": [], "ap": 0.0}
+
+    order    = np.argsort(-np.array(scores))
+    tp_arr   = np.array(tp_flags)[order].astype(float)
+    sc_arr   = np.array(scores)[order]
+    cum_tp   = np.cumsum(tp_arr)
+    cum_fp   = np.cumsum(1.0 - tp_arr)
+    prec     = cum_tp / (cum_tp + cum_fp + 1e-10)
+    rec      = cum_tp / n_gt
+
+    # AP = area under PR curve (interpolated, trapezoid)
+    ap = float(max(0.0, np.trapz(np.flip(prec), np.flip(rec))))
+
+    # Sample at n_points for compact storage
+    step = max(1, len(prec) // n_points)
+    return {
+        "precision":  prec[::step].tolist(),
+        "recall":     rec[::step].tolist(),
+        "thresholds": sc_arr[::step].tolist(),
+        "ap":         round(ap, 4),
+    }
+
+
 @torch.no_grad()
 def evaluate_test(model, test_ds, device, score_t=0.5):
-    """Return dict of detection / classification / keypoint metrics."""
+    """
+    Return detection / classification / keypoint metrics including:
+    - Precision, Recall, F1 at score_t
+    - AP (area under PR curve) via proper global greedy matching
+    - PR curve data for charting
+    - Per-class F1 (cleaning bee / normal bee)
+    - Mean IoU, PCK@5, PCK@10, keypoint errors
+    """
     loader = DataLoader(test_ds, batch_size=1, shuffle=False,
                         num_workers=0, collate_fn=collate_fn)
     model.eval()
+
+    # ── Pass 1: collect all predictions and ground-truths ─────────────────────
+    img_gts  = {}   # img_id -> {boxes, labels, keypoints}
+    img_dets = {}   # img_id -> list of {score, box, label, kp}
+
+    for img_idx, (images, targets) in enumerate(loader):
+        img_t  = images[0].to(device)
+        target = targets[0]
+        img_id = int(target["image_id"].item()) if "image_id" in target else img_idx
+        preds  = model([img_t])[0]
+
+        img_gts[img_id] = {
+            "boxes":     target["boxes"].numpy(),
+            "labels":    target["labels"].numpy(),
+            "keypoints": target["keypoints"].numpy(),   # (N, K, 3)
+        }
+        sc = preds["scores"].cpu().numpy()
+        pb = preds["boxes"].cpu().numpy()
+        pl = preds["labels"].cpu().numpy()
+        pk = preds["keypoints"].cpu().numpy()           # (N_det, K, 3)
+        img_dets[img_id] = [
+            {"score": float(sc[i]), "box": pb[i], "label": int(pl[i]), "kp": pk[i]}
+            for i in range(len(sc))
+        ]
+
+    n_gt_total = sum(len(v["boxes"]) for v in img_gts.values())
+
+    # ── PR curve: global greedy matching sorted by score ──────────────────────
+    all_dets_sorted = sorted(
+        [(d["score"], iid, di)
+         for iid, dets in img_dets.items()
+         for di, d in enumerate(dets)],
+        reverse=True,
+    )
+    pr_matched   = {iid: set() for iid in img_gts}
+    pr_tp_flags  = []
+    pr_scores    = []
+
+    for score, img_id, det_idx in all_dets_sorted:
+        det = img_dets[img_id][det_idx]
+        gts = img_gts[img_id]
+        best_iou, best_gi = 0.0, -1
+        for gi in range(len(gts["boxes"])):
+            if gi in pr_matched[img_id]:
+                continue
+            iou = _box_iou(det["box"], gts["boxes"][gi])
+            if iou > best_iou:
+                best_iou, best_gi = iou, gi
+        pr_scores.append(score)
+        if best_iou >= 0.5:
+            pr_matched[img_id].add(best_gi)
+            pr_tp_flags.append(1)
+        else:
+            pr_tp_flags.append(0)
+
+    pr_data = _compute_pr_curve(pr_scores, pr_tp_flags, n_gt_total)
+
+    # ── Standard metrics at score_t ───────────────────────────────────────────
     tp = fp = fn = 0
     iou_list, kp_errors = [], []
     cls_correct = cls_total = 0
-    kp_total_gt = 0
+    # KRCNN class labels: 1=cleaning, 2=normal
+    cls_tp_c = {1: 0, 2: 0}
+    cls_fp_c = {1: 0, 2: 0}
+    cls_fn_c = {1: 0, 2: 0}
 
-    for images, targets in loader:
-        img_t  = images[0].to(device)
-        target = targets[0]
-        preds  = model([img_t])[0]
-
-        gt_boxes  = target["boxes"].numpy()
-        gt_labels = target["labels"].numpy()
-        gt_kps    = target["keypoints"].numpy()  # (N,K,3)
-
-        sc   = preds["scores"].cpu().numpy()
-        keep = sc >= score_t
-        pb   = preds["boxes"][keep].cpu().numpy()
-        pl   = preds["labels"][keep].cpu().numpy()
-        pk   = preds["keypoints"][keep].cpu().numpy()
-
+    for img_id, dets in img_dets.items():
+        gts  = img_gts[img_id]
+        keep = sorted([d for d in dets if d["score"] >= score_t],
+                      key=lambda x: -x["score"])
         matched_gt = set()
-        for pi in range(len(pb)):
+
+        for det in keep:
             best_iou, best_gi = 0.0, -1
-            for gi in range(len(gt_boxes)):
+            for gi in range(len(gts["boxes"])):
                 if gi in matched_gt:
                     continue
-                iou = _box_iou(pb[pi], gt_boxes[gi])
+                iou = _box_iou(det["box"], gts["boxes"][gi])
                 if iou > best_iou:
                     best_iou, best_gi = iou, gi
             if best_iou >= 0.5:
                 matched_gt.add(best_gi)
                 tp += 1
                 iou_list.append(best_iou)
-                if pl[pi] == gt_labels[best_gi]:
+                gt_lbl = int(gts["labels"][best_gi])
+                if det["label"] == gt_lbl:
                     cls_correct += 1
+                    cls_tp_c[gt_lbl] = cls_tp_c.get(gt_lbl, 0) + 1
+                else:
+                    cls_fp_c[det["label"]] = cls_fp_c.get(det["label"], 0) + 1
+                    cls_fn_c[gt_lbl]       = cls_fn_c.get(gt_lbl, 0) + 1
                 cls_total += 1
-                for k in range(min(gt_kps.shape[1], pk.shape[1])):
-                    if gt_kps[best_gi, k, 2] >= 1:
-                        kp_total_gt += 1
-                        if pk[pi, k, 2] > 0.5:
-                            err = float(np.linalg.norm(
-                                pk[pi, k, :2] - gt_kps[best_gi, k, :2]))
-                            kp_errors.append(err)
+                gt_kps = gts["keypoints"]
+                kp_det = det["kp"]
+                for k in range(min(gt_kps.shape[1], kp_det.shape[0])):
+                    if gt_kps[best_gi, k, 2] >= 1 and kp_det[k, 2] > 0.5:
+                        kp_errors.append(float(np.linalg.norm(
+                            kp_det[k, :2] - gt_kps[best_gi, k, :2])))
             else:
                 fp += 1
-        fn += len(gt_boxes) - len(matched_gt)
+        fn += len(gts["boxes"]) - len(matched_gt)
 
-    prec   = tp / (tp + fp) if (tp + fp) else 0.0
-    rec    = tp / (tp + fn) if (tp + fn) else 0.0
-    f1     = 2*prec*rec / (prec+rec) if (prec+rec) else 0.0
-    mean_iou = float(np.mean(iou_list)) if iou_list else 0.0
-    cls_acc  = cls_correct / cls_total  if cls_total  else 0.0
-    pck5  = float(np.mean(np.array(kp_errors) <= 5))  if kp_errors else 0.0
-    pck10 = float(np.mean(np.array(kp_errors) <= 10)) if kp_errors else 0.0
-    kp_mean   = float(np.mean(kp_errors))   if kp_errors else 0.0
-    kp_median = float(np.median(kp_errors)) if kp_errors else 0.0
+    # Per-class F1
+    per_class_f1 = {}
+    for cid, cname in {1: "cleaning", 2: "normal"}.items():
+        c_tp = cls_tp_c.get(cid, 0)
+        c_fp = cls_fp_c.get(cid, 0)
+        c_fn = cls_fn_c.get(cid, 0)
+        p = c_tp / (c_tp + c_fp) if (c_tp + c_fp) else 0.0
+        r = c_tp / (c_tp + c_fn) if (c_tp + c_fn) else 0.0
+        per_class_f1[cname] = round(2*p*r/(p+r) if (p+r) else 0.0, 4)
+
+    prec     = tp / (tp + fp)      if (tp + fp)    else 0.0
+    rec      = tp / (tp + fn)      if (tp + fn)    else 0.0
+    f1       = 2*prec*rec/(prec+rec) if (prec+rec) else 0.0
+    mean_iou = float(np.mean(iou_list))              if iou_list   else 0.0
+    cls_acc  = cls_correct / cls_total               if cls_total  else 0.0
+    pck5     = float(np.mean(np.array(kp_errors) <= 5))  if kp_errors else 0.0
+    pck10    = float(np.mean(np.array(kp_errors) <= 10)) if kp_errors else 0.0
+    kp_mean  = float(np.mean(kp_errors))             if kp_errors  else 0.0
+    kp_med   = float(np.median(kp_errors))           if kp_errors  else 0.0
 
     return {
-        "precision":   round(prec,     4),
-        "recall":      round(rec,      4),
-        "f1":          round(f1,       4),
-        "mean_iou":    round(mean_iou, 4),
-        "cls_accuracy":round(cls_acc,  4),
-        "kp_mean_err": round(kp_mean,  3),
-        "kp_median_err":round(kp_median,3),
-        "pck5":        round(pck5,     4),
-        "pck10":       round(pck10,    4),
+        "precision":      round(prec,     4),
+        "recall":         round(rec,      4),
+        "f1":             round(f1,       4),
+        "ap":             pr_data["ap"],
+        "mean_iou":       round(mean_iou, 4),
+        "cls_accuracy":   round(cls_acc,  4),
+        "kp_mean_err":    round(kp_mean,  3),
+        "kp_median_err":  round(kp_med,   3),
+        "pck5":           round(pck5,     4),
+        "pck10":          round(pck10,    4),
+        "per_class_f1":   per_class_f1,
+        "pr_curve":       pr_data,
         "tp": tp, "fp": fp, "fn": fn,
     }
 

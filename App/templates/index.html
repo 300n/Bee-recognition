@@ -565,10 +565,11 @@
           <th>#</th>
           <th>Contrast</th>
           <th>Filter</th>
-          <th class="num">Box mAP50</th>
-          <th class="num">Pose mAP50</th>
-          <th class="num">Box mAP50-95</th>
-          <th class="num">Pose mAP50-95</th>
+          <th class="num" title="F1 (KRCNN) ou Pose mAP50 (YOLO)">F1 / mAP50</th>
+          <th class="num" title="Précision à seuil 0.5 (KRCNN) ou Box mAP50 (YOLO)">Precision</th>
+          <th class="num" title="Rappel à seuil 0.5 (KRCNN)">Recall</th>
+          <th class="num" title="Average Precision — aire sous la courbe PR (KRCNN)">AP</th>
+          <th class="num" title="PCK@10px keypoints (KRCNN) ou Pose mAP50-95 (YOLO)">PCK@10 / mAP95</th>
           <th class="num">Train time</th>
         </tr>
       </thead>
@@ -576,8 +577,43 @@
     </table>
 
     <p style="color:var(--muted);font-size:.72rem;margin-top:10px;">
-      Sorted by Pose mAP50 ↓ &nbsp;|&nbsp; <span style="color:var(--accent3)">■</span> = best pipeline
+      Trié par F1 / Pose mAP50 ↓ &nbsp;|&nbsp;
+      <span style="color:var(--accent3)">■</span> = meilleur pipeline &nbsp;|&nbsp;
+      Survolez les en-têtes pour la définition des métriques
     </p>
+
+    <!-- Charts section -->
+    <div style="margin-top:20px; border-top:1px solid #2e3450; padding-top:16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+        <p style="font-weight:600; color:white; font-size:.95rem;">
+          Graphiques d'évaluation
+          <span style="color:var(--muted); font-weight:400; font-size:.78rem; margin-left:8px;">
+            Courbes PR, scatter Precision/Recall, F1 par pipeline (KRCNN)
+          </span>
+        </p>
+        <button id="charts-load-btn" onclick="loadPipelineCharts()"
+                style="padding:7px 16px; background:var(--surface2); color:white;
+                       border:1px solid #3a4060; border-radius:6px; cursor:pointer;
+                       font-size:.82rem; transition:background .15s;">
+          Générer les graphiques
+        </button>
+      </div>
+      <div id="charts-loading" style="display:none; color:var(--muted); font-size:.85rem;">
+        Génération en cours…
+      </div>
+      <div id="charts-error" style="display:none; color:#ff6b6b; font-size:.85rem;"></div>
+      <div id="charts-container" style="display:none;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div id="chart-bar"      style="grid-column:1/-1;"></div>
+          <div id="chart-scatter"  style="grid-column:1/2;"></div>
+          <div id="chart-pr"       style="grid-column:2/3;"></div>
+        </div>
+        <p style="color:var(--muted);font-size:.7rem;margin-top:8px;">
+          Note : les courbes PR sont calculées avec le matching global PASCAL VOC (IoU ≥ 0.5).
+          Un score de confiance élevé proche de la courbe y=1 (Precision et Recall élevés simultanément) indique un pipeline optimal.
+        </p>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -1044,62 +1080,139 @@
     empty.style.display = 'none';
     wrap.style.display  = 'block';
 
-    // Sort by Pose mAP50 (YOLO metric), fall back to F1 for legacy KRCNN results
+    // Sort by Pose mAP50 (YOLO) or F1 (KRCNN), highest first
+    const isYolo  = r => r.metrics.test_pose_mAP50 != null;
     const getScore = r => r.metrics.test_pose_mAP50 ?? r.metrics.f1 ?? 0;
     results = [...results].sort((a,b) => getScore(b) - getScore(a));
 
     // Summary chips
     const best = results[0];
     const done = results.length;
-    const bestScore = getScore(best);
-    const scoreLabel = best.metrics.test_pose_mAP50 != null ? 'Best Pose mAP50' : 'Best F1';
+    const bestScore  = getScore(best);
+    const isYoloBest = isYolo(best);
+    const scoreLabel = isYoloBest ? 'Meilleur Pose mAP50' : 'Meilleur F1';
+    const bestAP     = best.metrics.ap != null ? `<div class="chip yellow"><span class="label">Meilleur AP</span><span class="value">${(best.metrics.ap*100).toFixed(1)}%</span></div>` : '';
+    const bestRec    = best.metrics.recall != null ? `<div class="chip orange"><span class="label">Recall</span><span class="value">${(best.metrics.recall*100).toFixed(1)}%</span></div>` : '';
     document.getElementById('pipeline-summary-chips').innerHTML = `
-      <div class="chip blue"><span class="label">Variants trained</span><span class="value">${done} / 18</span></div>
-      <div class="chip teal"><span class="label">Best pipeline</span><span class="value">${best.label}</span></div>
+      <div class="chip blue"><span class="label">Variants entraînés</span><span class="value">${done} / 18</span></div>
+      <div class="chip teal"><span class="label">Meilleur pipeline</span><span class="value">${best.label}</span></div>
       <div class="chip green"><span class="label">${scoreLabel}</span><span class="value">${(bestScore*100).toFixed(1)}%</span></div>
-      ${best.metrics.test_box_mAP50 != null ? `<div class="chip yellow"><span class="label">Best Box mAP50</span><span class="value">${(best.metrics.test_box_mAP50*100).toFixed(1)}%</span></div>` : ''}
+      ${bestAP}${bestRec}
     `;
 
     const maxScore = Math.max(...results.map(r => getScore(r)));
-    const maxBoxMap = Math.max(...results.map(r => r.metrics.test_box_mAP50 ?? 0));
 
     const CONTRAST_CLASS = { original:'contrast-original', clahe:'contrast-clahe', retinex:'contrast-retinex' };
     const FILTER_LABELS  = {
       bilateral:'Bilateral', nlm:'NLM', bm3d:'BM3D',
-      snn:'SNN', kramer_bruckner:'Kramer-Bruckner', epoaf:'EPOAF'
+      snn:'SNN', kramer_bruckner:'KB', epoaf:'EPOAF'
     };
 
     const tbody = document.getElementById('pipeline-tbody');
     tbody.innerHTML = '';
     results.forEach((r, idx) => {
       const m      = r.metrics;
-      const parts  = r.pipeline.split(/_(.+)/);   // split on first _ only
+      const parts  = r.pipeline.split(/_(.+)/);
       const cKey   = parts[0];
       const eKey   = parts[1];
       const isBest = idx === 0;
+      const yolo   = isYolo(r);
       const tr     = document.createElement('tr');
       if (isBest) tr.className = 'best-row';
 
-      const poseMap = m.test_pose_mAP50 ?? m.f1 ?? 0;
-      const boxMap  = m.test_box_mAP50  ?? 0;
-      const posePct = (poseMap / (maxScore || 1) * 100).toFixed(1);
-      const trainMin = m.train_time_s ? (m.train_time_s / 60).toFixed(1) + ' min' : '—';
+      // Primary metric: F1 (KRCNN) or Pose mAP50 (YOLO)
+      const mainScore = getScore(r);
+      const mainPct   = (mainScore / (maxScore || 1) * 100).toFixed(1);
+
+      // Secondary columns
+      const precVal  = yolo ? m.test_box_mAP50  : m.precision;
+      const recVal   = yolo ? null               : m.recall;
+      const apVal    = yolo ? null               : m.ap;
+      const pck10Val = yolo ? m.test_pose_mAP50_95 : m.pck10;
+      const trainMin = r.wall_time_s ? (r.wall_time_s / 60).toFixed(1) + ' min'
+                     : m.train_time_s ? (m.train_time_s / 60).toFixed(1) + ' min' : '—';
+
+      const fmtPct = v => v != null ? (v*100).toFixed(1)+'%' : '—';
+
+      // Color coding for F1 / AP cells
+      const f1Color = mainScore >= 0.7 ? 'var(--accent3)' : mainScore >= 0.5 ? 'var(--accent2)' : 'var(--muted)';
+      const apColor = (apVal != null && apVal >= 0.7) ? 'var(--accent3)' : (apVal != null && apVal >= 0.5) ? 'var(--accent2)' : 'var(--muted)';
 
       tr.innerHTML = `
         <td><span class="rank-badge">${isBest ? '★' : '#' + (idx+1)}</span></td>
         <td><span class="contrast-tag ${CONTRAST_CLASS[cKey] || ''}">${cKey.toUpperCase()}</span></td>
         <td><span class="filter-tag">${FILTER_LABELS[eKey] || eKey}</span></td>
-        <td class="num bar-cell">
-          ${(poseMap*100).toFixed(1)}%
-          <div class="bar-wrap"><div class="bar-fill" style="width:${posePct}%;background:var(--accent3)"></div></div>
+        <td class="num bar-cell" style="color:${f1Color}; font-weight:600;">
+          ${fmtPct(mainScore)}
+          <div class="bar-wrap"><div class="bar-fill" style="width:${mainPct}%;background:${f1Color}"></div></div>
         </td>
-        <td class="num">${boxMap ? (boxMap*100).toFixed(1)+'%' : '—'}</td>
-        <td class="num">${m.test_box_mAP50_95  != null ? (m.test_box_mAP50_95*100).toFixed(1)+'%'  : '—'}</td>
-        <td class="num">${m.test_pose_mAP50_95 != null ? (m.test_pose_mAP50_95*100).toFixed(1)+'%' : '—'}</td>
+        <td class="num">${fmtPct(precVal)}</td>
+        <td class="num">${fmtPct(recVal)}</td>
+        <td class="num" style="color:${apColor};">${fmtPct(apVal)}</td>
+        <td class="num">${fmtPct(pck10Val)}</td>
         <td class="num">${trainMin}</td>
       `;
       tbody.appendChild(tr);
     });
+  }
+
+  // ── Pipeline charts ───────────────────────────────────────────────────────
+  async function loadPipelineCharts() {
+    const btn       = document.getElementById('charts-load-btn');
+    const loading   = document.getElementById('charts-loading');
+    const errDiv    = document.getElementById('charts-error');
+    const container = document.getElementById('charts-container');
+
+    btn.disabled       = true;
+    btn.textContent    = '⏳ Génération…';
+    loading.style.display  = 'block';
+    errDiv.style.display   = 'none';
+    container.style.display = 'none';
+
+    try {
+      const resp = await fetch('/pipeline_charts');
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.error || `HTTP ${resp.status}`);
+      }
+      const charts = await resp.json();
+
+      const makeImg = (b64) => {
+        const img = document.createElement('img');
+        img.src   = 'data:image/png;base64,' + b64;
+        img.style.cssText = 'width:100%; border-radius:8px; border:1px solid #2e3450;';
+        return img;
+      };
+
+      if (charts.bar_f1) {
+        const d = document.getElementById('chart-bar');
+        d.innerHTML = '';
+        d.appendChild(makeImg(charts.bar_f1));
+      }
+      if (charts.scatter_pr) {
+        const d = document.getElementById('chart-scatter');
+        d.innerHTML = '';
+        d.appendChild(makeImg(charts.scatter_pr));
+      }
+      if (charts.pr_curves) {
+        const d = document.getElementById('chart-pr');
+        d.innerHTML = '';
+        d.appendChild(makeImg(charts.pr_curves));
+      } else {
+        document.getElementById('chart-pr').innerHTML =
+          '<p style="color:var(--muted);font-size:.8rem;padding:12px;">Courbes PR disponibles après le prochain entraînement (pipeline_train.py).</p>';
+      }
+
+      loading.style.display   = 'none';
+      container.style.display = 'block';
+    } catch(e) {
+      loading.style.display = 'none';
+      errDiv.textContent    = 'Erreur : ' + e.message;
+      errDiv.style.display  = 'block';
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = '↻ Régénérer';
+    }
   }
 
   // Auto-load on page open

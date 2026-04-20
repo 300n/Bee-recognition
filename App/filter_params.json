@@ -1,0 +1,40 @@
+{
+  "clahe": {
+    "clip_limit": 1.0,
+    "tile_size": 32
+  },
+  "retinex": {
+    "sigmas": [
+      15
+    ]
+  },
+  "snn": {
+    "radius": 2,
+    "h": 5,
+    "passes": 1
+  },
+  "bilateral": {
+    "d": 110,
+    "sigmaColor": 20,
+    "sigmaSpace": 50
+  },
+  "bm3d": {
+    "sigma": 4
+  },
+  "nlm": {
+    "h": 5,
+    "templateWindowSize": 11,
+    "searchWindowSize": 27
+  },
+  "kb": {
+    "win": 1,
+    "iters": 1
+  },
+  "epoaf": {
+    "offsets": [
+      -1,
+      1
+    ],
+    "ksize": 5
+  }
+}

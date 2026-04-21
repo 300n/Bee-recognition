@@ -1,7 +1,7 @@
 task: pose
 mode: train
 model: yolov8n-pose.pt
-data: /private/var/folders/fw/tt59v23j3k12k111rx9bwrrr0000gn/T/bee_yolo_original_bilateral_o_fcvjbt/bee_pose.yaml
+data: /private/var/folders/fw/tt59v23j3k12k111rx9bwrrr0000gn/T/bee_yolo_original_bilateral_z_q_3gsk/bee_pose.yaml
 epochs: 50
 time: null
 patience: 15
@@ -25,7 +25,7 @@ rect: false
 cos_lr: false
 close_mosaic: 10
 resume: false
-amp: true
+amp: false
 fraction: 1.0
 profile: false
 freeze: null

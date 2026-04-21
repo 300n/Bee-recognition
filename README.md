@@ -1,4 +1,4 @@
-# 🐝 Bee Recognition & Beehavior analysis 🐝
+# 🐝 Bee Recognition & Beehavior Analysis 🐝
 
 A python project that aims to recognise and analyse beehive 
 

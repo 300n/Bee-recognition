@@ -214,6 +214,7 @@ def train_pipeline(pipeline_name: str, args, device: str,
             name        = "run",
             exist_ok    = True,
             verbose     = False,
+            amp         = False,      # AMP causes float16 underflow on MPS (Apple Silicon)
             # Mild augmentation
             fliplr      = 0.5,
             flipud      = 0.0,

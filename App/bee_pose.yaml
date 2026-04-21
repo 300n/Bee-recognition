@@ -1,5 +1,5 @@
 # YOLOv8-pose dataset — bee keypoints
-path: /Users/noledge/ª/Cø/(TC 8.1) - Mission R&D/B E E/train/datasets/bee_yolo
+path: /Users/valentindaveau/2IA_S8/Mission_R&D/Bee-recognition/App/datasets/bee_yolo
 train: images/train
 val:   images/val
 test:  images/test

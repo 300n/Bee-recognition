@@ -18,9 +18,6 @@
     "sigmaColor": 20,
     "sigmaSpace": 50
   },
-  "bm3d": {
-    "sigma": 4
-  },
   "nlm": {
     "h": 5,
     "templateWindowSize": 11,

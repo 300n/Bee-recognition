@@ -33,7 +33,6 @@
       padding: 32px 16px 80px;
     }
 
-    /* ── Header ─────────────────────────────────── */
     header {
       text-align: center;
       margin-bottom: 32px;
@@ -53,56 +52,46 @@
     .dot { width:7px; height:7px; border-radius:50%; background:var(--success); animation:pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-    /* ── Card ────────────────────────────────────── */
     .card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 28px;
       width: 100%; max-width: 960px;
     }
 
-    /* ── Drop zone ───────────────────────────────── */
     #drop-zone {
       border: 2px dashed var(--border); border-radius: 10px;
       padding: 44px 24px; text-align: center; cursor: pointer;
       transition: border-color .2s, background .2s; position: relative;
     }
-    #drop-zone.drag-over { border-color: var(--accent); background: rgba(245,200,66,.05); }
+    #drop-zone.drag-over { border-color: var(--accent3); background: rgba(0,229,176,.05); }
     #drop-zone input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; }
     .drop-icon { font-size: 2.5rem; line-height:1; margin-bottom:10px; }
     .drop-text { color: var(--muted); font-size: .95rem; }
-    .drop-text strong { color: var(--accent); }
+    .drop-text strong { color: var(--accent3); }
 
-    /* ── Mode / model buttons ────────────────────── */
     .section-label {
       color: var(--muted); font-size:.75rem;
       text-transform: uppercase; letter-spacing:.06em; margin-bottom:8px;
     }
-    .mode-row { display:flex; gap:10px; margin:20px 0 0; flex-wrap:wrap; }
-    .mode-btn {
-      flex:1; min-width:160px; border:1px solid var(--border); border-radius:8px;
-      padding:12px 16px; background:transparent; color:var(--muted);
-      cursor:pointer; text-align:left; transition:all .15s;
-    }
-    .mode-btn.active { border-color:var(--accent); background:rgba(245,200,66,.08); color:var(--text); }
-    .mode-btn .mode-title { font-size:.9rem; font-weight:600; display:block; margin-bottom:3px; }
-    .mode-btn .mode-desc  { font-size:.74rem; opacity:.7; }
 
-    /* ── Run button ──────────────────────────────── */
     #run-btn {
       display:flex; align-items:center; justify-content:center; gap:8px;
       width:100%; margin-top:16px; padding:13px; border:none; border-radius:8px;
-      background:var(--accent); color:#0f1117; font-size:1rem; font-weight:700;
+      background:var(--accent3); color:#0f1117; font-size:1rem; font-weight:700;
       cursor:pointer; transition:opacity .15s, transform .1s;
     }
     #run-btn:hover:not(:disabled) { opacity:.88; transform:translateY(-1px); }
     #run-btn:disabled { opacity:.4; cursor:not-allowed; }
+
+    /* Score threshold slider */
+    #score-row { margin-top:14px; }
+
     .spinner {
       display:none; width:18px; height:18px; border:3px solid rgba(0,0,0,.2);
       border-top-color:#0f1117; border-radius:50%; animation:spin .7s linear infinite;
     }
     @keyframes spin { to { transform:rotate(360deg); } }
 
-    /* ── Results ─────────────────────────────────── */
     #results { display:none; margin-top:28px; }
 
     .result-grid {
@@ -118,7 +107,6 @@
     }
     .result-panel img { width:100%; display:block; }
 
-    /* ── Chips ───────────────────────────────────── */
     .stats-row { display:flex; flex-wrap:wrap; gap:8px; padding:14px 0 0; }
     .chip {
       background:rgba(255,255,255,.05); border:1px solid var(--border);
@@ -132,7 +120,6 @@
     .chip.orange .value { color:var(--warn); }
     .chip.teal   .value { color:var(--accent3); }
 
-    /* ── Detection list ──────────────────────────── */
     #detections-list { display:flex; flex-direction:column; gap:5px; padding:10px 0 0; }
     .det-row {
       display:flex; justify-content:space-between; align-items:center;
@@ -142,12 +129,10 @@
     .det-row .det-cls  { font-weight:600; }
     .det-row .det-conf { color:var(--muted); }
 
-    /* ── Legend ──────────────────────────────────── */
     .legend { display:flex; gap:16px; padding:12px 0 0; flex-wrap:wrap; }
     .legend-item { display:flex; align-items:center; gap:6px; font-size:.8rem; color:var(--muted); }
     .legend-dot  { width:12px; height:12px; border-radius:50%; }
 
-    /* ── Analyse button ──────────────────────────── */
     #analyse-btn {
       display:flex; align-items:center; justify-content:center; gap:8px;
       width:100%; margin-top:20px; padding:12px; border:1px solid var(--accent3);
@@ -158,7 +143,6 @@
     #analyse-btn:hover:not(:disabled) { background:rgba(0,229,176,.14); }
     #analyse-btn:disabled { opacity:.4; cursor:not-allowed; }
 
-    /* ── Analysis section ────────────────────────── */
     #analysis-section { display:none; margin-top:24px; }
 
     .section-divider {
@@ -170,10 +154,8 @@
       text-transform:uppercase; letter-spacing:.1em; white-space:nowrap;
     }
 
-    /* Analysis stat chips */
     #analysis-stats-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
 
-    /* Analysis grid */
     #analysis-grid {
       display:grid; grid-template-columns: repeat(2, 1fr); gap:16px;
     }
@@ -201,11 +183,8 @@
       padding:8px 14px; font-size:.74rem; color:var(--muted); border-top:1px solid var(--border);
       line-height:1.5;
     }
-
-    /* Flow card spans full width */
     .analysis-card.wide { grid-column: 1 / -1; }
 
-    /* ── Loading overlay for analysis ────────────── */
     #analysis-loading {
       display:none; text-align:center; padding:40px 0;
     }
@@ -216,7 +195,6 @@
     }
     #analysis-loading p { color:var(--muted); font-size:.9rem; }
 
-    /* ── Toast ───────────────────────────────────── */
     #toast {
       position:fixed; bottom:24px; left:50%;
       transform:translateX(-50%) translateY(80px);
@@ -225,7 +203,7 @@
     }
     #toast.show { transform:translateX(-50%) translateY(0); }
 
-    /* ── Pipeline comparison card ───────────────── */
+    /* Pipeline comparison */
     #pipeline-card { margin-top: 20px; }
     #pipeline-card h2 { font-size:1.15rem; font-weight:700; }
 
@@ -238,7 +216,6 @@
     }
     .pipeline-refresh-btn:hover { background:rgba(74,158,255,.16); }
 
-    /* Table */
     .pipeline-table { width:100%; border-collapse:collapse; font-size:.82rem; margin-top:16px; }
     .pipeline-table th {
       background:rgba(255,255,255,.05); color:var(--muted);
@@ -265,38 +242,14 @@
       font-size:.7rem; background:rgba(74,158,255,.12); color:var(--accent2);
     }
 
-    /* Metric bars */
     .bar-cell { min-width:90px; }
     .bar-wrap { background:rgba(255,255,255,.07); border-radius:3px; height:6px; margin-top:3px; }
     .bar-fill { height:6px; border-radius:3px; background:var(--accent2); }
 
-    /* No-data state */
     #pipeline-empty {
       text-align:center; padding:40px 0; color:var(--muted); font-size:.9rem;
     }
 
-    /* ── Video card ──────────────────────────────── */
-    #video-card { margin-top: 20px; }
-    #video-card h2 { font-size:1.15rem; font-weight:700; }
-
-    #video-drop-zone {
-      border: 2px dashed var(--border); border-radius: 10px;
-      padding: 36px 24px; text-align: center; cursor: pointer;
-      transition: border-color .2s, background .2s; position: relative;
-    }
-    #video-drop-zone.drag-over { border-color:var(--accent2); background:rgba(74,158,255,.05); }
-    #video-drop-zone input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; }
-
-    #video-run-btn {
-      display:flex; align-items:center; justify-content:center; gap:8px;
-      width:100%; margin-top:16px; padding:13px; border:none; border-radius:8px;
-      background:var(--accent2); color:#0f1117; font-size:1rem; font-weight:700;
-      cursor:pointer; transition:opacity .15s, transform .1s;
-    }
-    #video-run-btn:hover:not(:disabled) { opacity:.88; transform:translateY(-1px); }
-    #video-run-btn:disabled { opacity:.4; cursor:not-allowed; }
-
-    /* progress bar */
     .progress-bar-wrap {
       background:rgba(255,255,255,.07); border-radius:999px; height:8px; overflow:hidden;
       margin-bottom:8px;
@@ -305,31 +258,6 @@
       height:100%; border-radius:999px; background:var(--accent2);
       transition:width .4s ease;
     }
-
-    /* key frames gallery */
-    #kf-gallery {
-      display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap:10px; margin-top:16px;
-    }
-    .kf-thumb { border-radius:8px; overflow:hidden; border:1px solid var(--border); }
-    .kf-thumb img { width:100%; display:block; }
-    .kf-thumb .kf-label {
-      padding:4px 8px; font-size:.72rem; color:var(--muted);
-      background:rgba(0,0,0,.3); display:flex; justify-content:space-between;
-    }
-
-    /* timeline charts */
-    #timeline-charts { margin-top:20px; display:flex; flex-direction:column; gap:12px; }
-    .timeline-chart img { width:100%; display:block; border-radius:8px; border:1px solid var(--border); }
-
-    /* download btn */
-    #video-download-btn {
-      display:inline-flex; align-items:center; gap:8px;
-      padding:10px 22px; border:1px solid var(--success); border-radius:8px;
-      background:rgba(76,175,114,.1); color:var(--success); font-size:.9rem; font-weight:600;
-      cursor:pointer; text-decoration:none; transition:background .15s;
-    }
-    #video-download-btn:hover { background:rgba(76,175,114,.2); }
   </style>
 </head>
 <body>
@@ -338,16 +266,9 @@
   <h1>🐝 Bee <span>Keypoint</span> Detector</h1>
   <p>Upload a hive image — detect bees, predict keypoints, analyse collective behaviour</p>
   <div class="badge-row">
-    <div class="badge">
-      <span class="dot"></span>
-      ResNet18 (crop) · epoch {{ model_epoch }} · val {{ val_loss }}
-    </div>
-    <div class="badge" id="krcnn-badge" style="display:none;">
-      <span class="dot" style="background:#4a9eff"></span>
-      Keypoint R-CNN · full image
-    </div>
-    <div class="badge" style="background:rgba(74,158,255,.08); border-color:#4a9eff;">
-      {{ device }}
+    <div class="badge" style="background:rgba(0,229,176,.08); border-color:var(--accent3);">
+      <span class="dot" style="background:var(--accent3)"></span>
+      YOLOv8-Pose · {{ device }}
     </div>
   </div>
 </header>
@@ -360,7 +281,7 @@
     <div class="drop-icon">📷</div>
     <div class="drop-text">
       <strong>Click to upload</strong> or drag &amp; drop<br/>
-      PNG, JPG, WEBP — max 16 MB
+      PNG, JPG, WEBP — max 64 MB
     </div>
   </div>
 
@@ -369,51 +290,20 @@
     <img id="preview-img" style="max-width:100%; border-radius:8px; border:1px solid var(--border);"/>
   </div>
 
-  <!-- Model selector -->
-  <div style="margin-top:20px;">
-    <p class="section-label">Model</p>
-    <div class="mode-row" id="model-row">
-      <button class="mode-btn active" data-model="resnet18">
-        <span class="mode-title">ResNet18 <span style="color:var(--muted);font-weight:400;font-size:.74rem;">(crop)</span></span>
-        <span class="mode-desc">Fast. Best when the bee is already cropped.</span>
-      </button>
-      <button class="mode-btn" data-model="krcnn">
-        <span class="mode-title" style="color:var(--accent2)">Keypoint R-CNN <span style="color:var(--muted);font-weight:400;font-size:.74rem;">(full image)</span></span>
-        <span class="mode-desc">Detects all bees automatically + behaviour analysis.</span>
-      </button>
-      <button class="mode-btn" data-model="yolo">
-        <span class="mode-title" style="color:var(--accent3)">YOLOv8-Pose <span style="color:var(--muted);font-weight:400;font-size:.74rem;">(full image)</span></span>
-        <span class="mode-desc">Fast single-pass detector. Best for pipeline comparison.</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Scan mode (ResNet18 only) -->
-  <div class="mode-row" id="scan-mode-row">
-    <button class="mode-btn active" data-mode="single">
-      <span class="mode-title">🔍 Single bee</span>
-      <span class="mode-desc">Treats the whole image as one crop.</span>
-    </button>
-    <button class="mode-btn" data-mode="grid">
-      <span class="mode-title">🔲 Scan scene</span>
-      <span class="mode-desc">Sliding window — find multiple bees.</span>
-    </button>
-  </div>
-
-  <!-- KRCNN score threshold (krcnn only, hidden by default) -->
-  <div id="score-row" style="display:none; margin-top:14px;">
-    <p class="section-label">Detection threshold: <span id="score-label">0.50</span></p>
-    <input type="range" id="score-slider" min="0.1" max="0.9" step="0.05" value="0.5"
-           style="width:100%; accent-color:var(--accent2); margin-top:4px;"/>
+  <!-- Detection threshold -->
+  <div id="score-row" style="margin-top:18px;">
+    <p class="section-label">Detection threshold: <span id="score-label">0.40</span></p>
+    <input type="range" id="score-slider" min="0.1" max="0.9" step="0.05" value="0.4"
+           style="width:100%; accent-color:var(--accent3); margin-top:4px;"/>
   </div>
 
   <!-- Run button -->
   <button id="run-btn" disabled>
     <div class="spinner" id="pred-spinner"></div>
-    <span id="btn-label">Predict</span>
+    <span id="btn-label">Detect Bees</span>
   </button>
 
-  <!-- ── Results ──────────────────────────────────────────────────── -->
+  <!-- Results -->
   <div id="results">
     <div class="result-grid" style="margin-top:24px;">
       <div class="result-panel">
@@ -421,77 +311,55 @@
         <img id="orig-img"/>
       </div>
       <div class="result-panel">
-        <div class="result-panel-header">Prediction</div>
+        <div class="result-panel-header">Detection</div>
         <img id="pred-img"/>
       </div>
     </div>
 
-    <!-- Stats: single-crop mode -->
-    <div id="single-stats" style="display:none;">
-      <div class="stats-row" id="chips-row"></div>
-      <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#ff5050"></div>Head (kp0)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#ffb41e"></div>Tail (kp1)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#4ab4ff"></div>Body (kp2)</div>
-      </div>
+    <div id="detections-list"></div>
+
+    <div class="legend" style="margin-top:10px;">
+      <div class="legend-item"><div class="legend-dot" style="background:#ff5050"></div>Head (kp0)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ffb41e"></div>Tail (kp1)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#4ab4ff"></div>Body (kp2)</div>
     </div>
 
-    <!-- Stats: KRCNN / grid mode -->
-    <div id="multi-stats" style="display:none;">
-      <div id="detections-list"></div>
-      <div class="legend" style="margin-top:10px;">
-        <div class="legend-item"><div class="legend-dot" style="background:#ff5050"></div>Head (kp0)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#ffb41e"></div>Tail (kp1)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#4ab4ff"></div>Body (kp2)</div>
-      </div>
-    </div>
-
-    <!-- Analyse button (KRCNN only) -->
     <button id="analyse-btn" style="display:none;" disabled>
       <span>🔬</span>
       <span id="analyse-label">Analyse Behaviour</span>
     </button>
   </div>
 
-  <!-- ── Analysis section ──────────────────────────────────────────── -->
+  <!-- Analysis section -->
   <div id="analysis-section">
-
     <div class="section-divider">
       <div class="divider-line"></div>
       <span>🧬 Behavioural Analysis</span>
       <div class="divider-line"></div>
     </div>
 
-    <!-- Loading state -->
     <div id="analysis-loading">
       <div class="big-spinner"></div>
       <p>Computing behavioural analyses…</p>
     </div>
 
-    <!-- Results -->
     <div id="analysis-results" style="display:none;">
-
-      <!-- Summary stats -->
       <div id="analysis-stats-row"></div>
-
-      <!-- Analysis cards grid -->
       <div id="analysis-grid"></div>
-
     </div>
   </div>
 
 </div><!-- /card -->
 
-<!-- ────────────────────────────────────────────────────── -->
-<!-- Pipeline Comparison Card                               -->
-<!-- ────────────────────────────────────────────────────── -->
+
+<!-- Pipeline Comparison -->
 <div class="card" id="pipeline-card">
 
   <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
     <div>
       <h2>🔬 Preprocessing <span style="color:var(--accent2)">Pipeline Comparison</span></h2>
       <p style="color:var(--muted); font-size:.85rem; margin-top:5px;">
-        18 variants = 3 contrast enhancements × 6 edge-preserving filters.
+        18 variants = 3 contrast enhancements × 6 edge-preserving filters — YOLOv8-Pose
       </p>
     </div>
     <button class="pipeline-refresh-btn" id="pipeline-refresh-btn" onclick="loadPipelineResults()">
@@ -499,11 +367,12 @@
     </button>
   </div>
 
-  <!-- Live training status (shown while pipeline_train.py is running) -->
+  <!-- Live training status -->
   <div id="pipeline-training-status" style="display:none; margin-top:16px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-      <div class="big-spinner" style="width:20px;height:20px;border-width:3px;
-           border-color:rgba(74,158,255,.2);border-top-color:var(--accent2);flex-shrink:0;"></div>
+      <div style="width:20px;height:20px;border:3px solid rgba(74,158,255,.2);
+           border-top-color:var(--accent2);border-radius:50%;flex-shrink:0;
+           animation:spin .8s linear infinite;"></div>
       <div style="flex:1;">
         <p id="pt-pipeline-name" style="font-weight:600; font-size:.95rem;"></p>
         <p id="pt-epoch-line"    style="color:var(--muted); font-size:.8rem; margin-top:2px;"></p>
@@ -514,7 +383,6 @@
       </div>
     </div>
 
-    <!-- Overall progress bar -->
     <div style="margin-bottom:4px;">
       <div style="display:flex; justify-content:space-between; font-size:.72rem; color:var(--muted); margin-bottom:3px;">
         <span>Overall progress</span>
@@ -525,7 +393,6 @@
       </div>
     </div>
 
-    <!-- Per-epoch progress bar (within current pipeline) -->
     <div style="margin-bottom:12px;">
       <div style="display:flex; justify-content:space-between; font-size:.72rem; color:var(--muted); margin-bottom:3px;">
         <span>Current pipeline</span>
@@ -536,10 +403,8 @@
       </div>
     </div>
 
-    <!-- Loss chips -->
     <div style="display:flex; gap:8px; flex-wrap:wrap;" id="pt-loss-chips"></div>
 
-    <!-- Completed list -->
     <div id="pt-completed-wrap" style="margin-top:12px; display:none;">
       <p class="section-label" style="margin-bottom:6px;">Completed</p>
       <div id="pt-completed-list" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
@@ -549,214 +414,59 @@
   <div id="pipeline-empty" style="display:none;">
     <p>No results yet — training has not been started or is still running.</p>
     <p style="font-size:.8rem; margin-top:6px;">
-      Completed pipelines appear here as soon as they finish
-      (results are saved incrementally).
+      Launch: <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;">python yolo_pipeline_train.py --imgsz 160 --epochs 30 --patience 10</code>
     </p>
   </div>
 
   <div id="pipeline-table-wrap" style="display:none; overflow-x:auto;">
-
-    <!-- Summary chips -->
     <div class="stats-row" id="pipeline-summary-chips" style="margin-bottom:4px;"></div>
-
     <table class="pipeline-table" id="pipeline-table">
       <thead>
         <tr>
           <th>#</th>
           <th>Contrast</th>
           <th>Filter</th>
-          <th class="num" title="F1 (KRCNN) ou Pose mAP50 (YOLO)">F1 / mAP50</th>
-          <th class="num" title="Précision à seuil 0.5 (KRCNN) ou Box mAP50 (YOLO)">Precision</th>
-          <th class="num" title="Rappel à seuil 0.5 (KRCNN)">Recall</th>
-          <th class="num" title="Average Precision — aire sous la courbe PR (KRCNN)">AP</th>
-          <th class="num" title="PCK@10px keypoints (KRCNN) ou Pose mAP50-95 (YOLO)">PCK@10 / mAP95</th>
+          <th class="num" title="Pose mAP50 on test split">Pose mAP50</th>
+          <th class="num" title="Box mAP50 on test split">Box mAP50</th>
+          <th class="num" title="Pose mAP50-95 on test split">Pose mAP50-95</th>
+          <th class="num" title="Box mAP50-95 on test split">Box mAP50-95</th>
           <th class="num">Train time</th>
         </tr>
       </thead>
       <tbody id="pipeline-tbody"></tbody>
     </table>
-
     <p style="color:var(--muted);font-size:.72rem;margin-top:10px;">
-      Trié par F1 / Pose mAP50 ↓ &nbsp;|&nbsp;
-      <span style="color:var(--accent3)">■</span> = meilleur pipeline &nbsp;|&nbsp;
-      Survolez les en-têtes pour la définition des métriques
+      Sorted by Pose mAP50 ↓ &nbsp;|&nbsp;
+      <span style="color:var(--accent3)">★</span> = best pipeline
     </p>
-
-    <!-- Charts section -->
-    <div style="margin-top:20px; border-top:1px solid #2e3450; padding-top:16px;">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-        <p style="font-weight:600; color:white; font-size:.95rem;">
-          Graphiques d'évaluation
-          <span style="color:var(--muted); font-weight:400; font-size:.78rem; margin-left:8px;">
-            Courbes PR, scatter Precision/Recall, F1 par pipeline (KRCNN)
-          </span>
-        </p>
-        <button id="charts-load-btn" onclick="loadPipelineCharts()"
-                style="padding:7px 16px; background:var(--surface2); color:white;
-                       border:1px solid #3a4060; border-radius:6px; cursor:pointer;
-                       font-size:.82rem; transition:background .15s;">
-          Générer les graphiques
-        </button>
-      </div>
-      <div id="charts-loading" style="display:none; color:var(--muted); font-size:.85rem;">
-        Génération en cours…
-      </div>
-      <div id="charts-error" style="display:none; color:#ff6b6b; font-size:.85rem;"></div>
-      <div id="charts-container" style="display:none;">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-          <div id="chart-bar"      style="grid-column:1/-1;"></div>
-          <div id="chart-scatter"  style="grid-column:1/2;"></div>
-          <div id="chart-pr"       style="grid-column:2/3;"></div>
-        </div>
-        <p style="color:var(--muted);font-size:.7rem;margin-top:8px;">
-          Note : les courbes PR sont calculées avec le matching global PASCAL VOC (IoU ≥ 0.5).
-          Un score de confiance élevé proche de la courbe y=1 (Precision et Recall élevés simultanément) indique un pipeline optimal.
-        </p>
-      </div>
-    </div>
   </div>
 
 </div>
 
-<!-- ────────────────────────────────────────────────────── -->
-<!-- Video Analysis Card                                    -->
-<!-- ────────────────────────────────────────────────────── -->
-<div class="card" id="video-card">
-
-  <div style="margin-bottom:20px;">
-    <h2>🎬 Video <span style="color:var(--accent2)">Analysis</span></h2>
-    <p style="color:var(--muted);font-size:.88rem;margin-top:5px;">
-      Upload a video — KRCNN analyses every N-th frame and generates annotated output + behavioural time-series charts.
-    </p>
-  </div>
-
-  <!-- Video drop zone -->
-  <div id="video-drop-zone">
-    <input type="file" id="video-input" accept="video/*"/>
-    <div class="drop-icon">🎥</div>
-    <div class="drop-text" id="video-drop-text">
-      <strong>Click to upload</strong> or drag &amp; drop<br/>
-      MP4, MOV, AVI — max 512 MB
-    </div>
-  </div>
-
-  <!-- Settings -->
-  <div style="display:flex; gap:20px; margin-top:18px; flex-wrap:wrap;">
-    <div style="flex:1; min-width:200px;">
-      <p class="section-label">Frame step: <span id="frame-step-label">10</span>
-        <span style="color:var(--muted);font-size:.7rem;margin-left:6px;">(process every Nth frame)</span>
-      </p>
-      <input type="range" id="frame-step-slider" min="1" max="60" step="1" value="10"
-             style="width:100%; accent-color:var(--accent2); margin-top:6px;"/>
-      <div style="display:flex; justify-content:space-between; font-size:.7rem; color:var(--muted); margin-top:2px;">
-        <span>Every frame</span><span>Every 60th</span>
-      </div>
-    </div>
-    <div style="flex:1; min-width:200px;">
-      <p class="section-label">Detection threshold: <span id="video-score-label">0.50</span></p>
-      <input type="range" id="video-score-slider" min="0.1" max="0.9" step="0.05" value="0.5"
-             style="width:100%; accent-color:var(--accent2); margin-top:6px;"/>
-    </div>
-  </div>
-
-  <!-- Process button -->
-  <button id="video-run-btn" disabled>
-    <div class="spinner" id="video-spinner"></div>
-    <span id="video-btn-label">Process Video</span>
-  </button>
-
-  <!-- Progress -->
-  <div id="video-progress" style="display:none; margin-top:20px;">
-    <div class="progress-bar-wrap">
-      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
-    </div>
-    <p id="video-status-text" style="color:var(--muted); font-size:.85rem; margin-top:4px;"></p>
-    <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;" id="progress-chips"></div>
-  </div>
-
-  <!-- Results -->
-  <div id="video-results" style="display:none; margin-top:28px;">
-
-    <div class="section-divider">
-      <div class="divider-line"></div>
-      <span>📊 Results</span>
-      <div class="divider-line"></div>
-    </div>
-
-    <!-- Summary stats -->
-    <div class="stats-row" id="video-summary-chips" style="margin-bottom:16px;"></div>
-
-    <!-- Download button -->
-    <a id="video-download-btn" href="#" download="bee_analysis.mp4">
-      ⬇ Download annotated video
-    </a>
-
-    <!-- Key frames -->
-    <div style="margin-top:24px;">
-      <p class="section-label" style="margin-bottom:8px;">Key frames</p>
-      <div id="kf-gallery"></div>
-    </div>
-
-    <!-- Timeline charts -->
-    <div id="timeline-charts"></div>
-
-  </div>
-</div><!-- /video-card -->
-
 <div id="toast"></div>
 
 <script>
-  // ── Elements ───────────────────────────────────────────────────────────────
-  const dropZone    = document.getElementById('drop-zone');
-  const fileInput   = document.getElementById('file-input');
-  const previewWrap = document.getElementById('preview-wrap');
-  const previewImg  = document.getElementById('preview-img');
-  const runBtn      = document.getElementById('run-btn');
-  const btnLabel    = document.getElementById('btn-label');
-  const predSpinner = document.getElementById('pred-spinner');
-  const results     = document.getElementById('results');
-  const origImg     = document.getElementById('orig-img');
-  const predImg     = document.getElementById('pred-img');
-  const chipsRow    = document.getElementById('chips-row');
-  const singleStats = document.getElementById('single-stats');
-  const multiStats  = document.getElementById('multi-stats');
-  const detList     = document.getElementById('detections-list');
-  const analyseBtn  = document.getElementById('analyse-btn');
-  const analyseLabel= document.getElementById('analyse-label');
+  // ── Elements ────────────────────────────────────────────────────────────────
+  const dropZone        = document.getElementById('drop-zone');
+  const fileInput       = document.getElementById('file-input');
+  const previewWrap     = document.getElementById('preview-wrap');
+  const previewImg      = document.getElementById('preview-img');
+  const runBtn          = document.getElementById('run-btn');
+  const btnLabel        = document.getElementById('btn-label');
+  const predSpinner     = document.getElementById('pred-spinner');
+  const results         = document.getElementById('results');
+  const origImg         = document.getElementById('orig-img');
+  const predImg         = document.getElementById('pred-img');
+  const detList         = document.getElementById('detections-list');
+  const analyseBtn      = document.getElementById('analyse-btn');
+  const analyseLabel    = document.getElementById('analyse-label');
   const analysisSection = document.getElementById('analysis-section');
   const analysisLoading = document.getElementById('analysis-loading');
   const analysisResults = document.getElementById('analysis-results');
-  const toast       = document.getElementById('toast');
+  const toast           = document.getElementById('toast');
 
-  let selectedFile  = null;
-  let selectedMode  = 'single';
-  let selectedModel = 'resnet18';
-  let lastDetections = [];
-
-  // ── Model selection ────────────────────────────────────────────────────────
-  document.querySelectorAll('#model-row .mode-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#model-row .mode-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      selectedModel = btn.dataset.model;
-      const isKrcnn = selectedModel === 'krcnn';
-      const isYolo  = selectedModel === 'yolo';
-      const isFullImg = isKrcnn || isYolo;
-      document.getElementById('scan-mode-row').style.display = isFullImg ? 'none' : 'flex';
-      document.getElementById('score-row').style.display     = isFullImg ? 'block' : 'none';
-      document.getElementById('krcnn-badge').style.display   = isKrcnn ? 'inline-flex' : 'none';
-      resetAnalysis();
-    });
-  });
-
-  // ── Scan mode ──────────────────────────────────────────────────────────────
-  document.querySelectorAll('#scan-mode-row .mode-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#scan-mode-row .mode-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      selectedMode = btn.dataset.mode;
-    });
-  });
+  let selectedFile    = null;
+  let lastDetections  = [];
 
   // ── Score slider ───────────────────────────────────────────────────────────
   const scoreSlider = document.getElementById('score-slider');
@@ -778,7 +488,8 @@
   function handleFile(file) {
     selectedFile = file;
     const url = URL.createObjectURL(file);
-    previewImg.src = url; origImg.src = url;
+    previewImg.src = url;
+    origImg.src    = url;
     previewWrap.style.display = 'block';
     runBtn.disabled = false;
     results.style.display = 'none';
@@ -795,14 +506,10 @@
 
     const fd = new FormData();
     fd.append('image', selectedFile);
-    fd.append('mode', selectedMode);
     fd.append('score', scoreSlider.value);
 
-    const endpoint = selectedModel === 'krcnn' ? '/predict_krcnn'
-                   : selectedModel === 'yolo'  ? '/predict_yolo'
-                   : '/predict';
     try {
-      const resp = await fetch(endpoint, { method:'POST', body: fd });
+      const resp = await fetch('/predict_yolo', { method:'POST', body: fd });
       if (!resp.ok) { const e = await resp.json(); throw new Error(e.error || `HTTP ${resp.status}`); }
       const data = await resp.json();
       renderResults(data);
@@ -816,90 +523,50 @@
   function setLoading(on) {
     runBtn.disabled = on;
     predSpinner.style.display = on ? 'block' : 'none';
-    btnLabel.textContent = on ? 'Analysing…' : 'Predict';
+    btnLabel.textContent = on ? 'Detecting…' : 'Detect Bees';
   }
 
-  // ── Render prediction results ──────────────────────────────────────────────
+  // ── Render results ─────────────────────────────────────────────────────────
   function renderResults(data) {
     predImg.src = 'data:image/png;base64,' + data.annotated_image;
     results.style.display = 'block';
 
-    if (data.mode === 'krcnn' || data.mode === 'yolo') {
-      singleStats.style.display = 'none';
-      multiStats.style.display  = 'block';
-      const dets = data.detections || [];
-      lastDetections = dets;
+    const dets     = data.detections || [];
+    lastDetections = dets;
 
-      const nClean  = dets.filter(d => d.class_name.includes('clean')).length;
-      const nNormal = dets.length - nClean;
-      const [imgW, imgH] = data.image_size || [0, 0];
-      const modelChip = data.mode === 'yolo'
-        ? `<div class="chip" style="border-color:var(--accent3)"><span class="label">Model</span><span class="value">YOLOv8-Pose</span></div>`
-        : '';
-      const tiledInfo = data.n_tiles > 1
-        ? `<div class="chip teal"><span class="label">Tiled</span><span class="value">${data.n_tiles} tiles × ${data.tile_size}px</span></div>
-           <div class="chip"><span class="label">Image</span><span class="value">${imgW}×${imgH}</span></div>` + modelChip
-        : `<div class="chip"><span class="label">Image</span><span class="value">${imgW}×${imgH}</span></div>` + modelChip;
+    const nClean  = dets.filter(d => d.class_name.includes('clean')).length;
+    const nNormal = dets.length - nClean;
+    const [imgW, imgH] = data.image_size || [0, 0];
 
-      detList.innerHTML = dets.length === 0
-        ? '<p style="color:var(--muted);font-size:.85rem;padding:8px 0">No bees detected — try a lower threshold.</p>'
-        : `<div class="stats-row" style="padding:0 0 10px">
-             <div class="chip blue"><span class="label">Detected</span><span class="value">${dets.length}</span></div>
-             ${nClean  ? `<div class="chip orange"><span class="label">Cleaning</span><span class="value">${nClean}</span></div>` : ''}
-             ${nNormal ? `<div class="chip green"><span class="label">Normal</span><span class="value">${nNormal}</span></div>` : ''}
-             ${tiledInfo}
-           </div>` +
-          dets.map((d, i) => {
-            const cls = d.class_name.includes('clean') ? 'orange' : 'blue';
-            return `<div class="det-row">
-              <span class="det-cls"><span class="chip ${cls}" style="border:none;background:transparent;padding:0">
-                <span class="label">#${i+1}</span><span class="value">${d.class_name}</span>
-              </span></span>
-              <span class="det-conf">${(d.confidence*100).toFixed(0)}%</span>
-            </div>`;
-          }).join('');
+    detList.innerHTML = dets.length === 0
+      ? '<p style="color:var(--muted);font-size:.85rem;padding:8px 0">No bees detected — try a lower threshold.</p>'
+      : `<div class="stats-row" style="padding:0 0 10px">
+           <div class="chip teal"><span class="label">Model</span><span class="value">YOLOv8-Pose</span></div>
+           <div class="chip blue"><span class="label">Detected</span><span class="value">${dets.length}</span></div>
+           ${nClean  ? `<div class="chip orange"><span class="label">Cleaning</span><span class="value">${nClean}</span></div>` : ''}
+           ${nNormal ? `<div class="chip green"><span class="label">Normal</span><span class="value">${nNormal}</span></div>` : ''}
+           <div class="chip"><span class="label">Image</span><span class="value">${imgW}×${imgH}</span></div>
+         </div>` +
+        dets.map((d, i) => {
+          const cls = d.class_name.includes('clean') ? 'orange' : 'blue';
+          return `<div class="det-row">
+            <span class="det-cls"><span class="chip ${cls}" style="border:none;background:transparent;padding:0">
+              <span class="label">#${i+1}</span><span class="value">${d.class_name}</span>
+            </span></span>
+            <span class="det-conf">${(d.confidence*100).toFixed(0)}%</span>
+          </div>`;
+        }).join('');
 
-      // Show analyse button if we have bees
-      analyseBtn.style.display = dets.length >= 2 ? 'flex' : 'none';
-      analyseBtn.disabled = dets.length < 2;
-      analyseLabel.textContent = dets.length >= 2
-        ? `Analyse Behaviour (${dets.length} bees)`
-        : 'Need ≥2 bees for analysis';
-
-    } else if (data.mode === 'single') {
-      singleStats.style.display = 'block';
-      multiStats.style.display  = 'none';
-      analyseBtn.style.display  = 'none';
-      const cls    = data.class_name.includes('clean') ? 'orange' : 'blue';
-      const visKps = (data.keypoints || []).filter(k => k.visible);
-      chipsRow.innerHTML = `
-        <div class="chip ${cls}"><span class="label">Type</span><span class="value">${data.class_name}</span></div>
-        <div class="chip yellow"><span class="label">Confidence</span><span class="value">${(data.confidence*100).toFixed(1)}%</span></div>
-        <div class="chip green"><span class="label">Keypoints</span><span class="value">${visKps.length}/${(data.keypoints||[]).length}</span></div>`;
-    } else {
-      // grid scan mode
-      singleStats.style.display = 'none';
-      multiStats.style.display  = 'block';
-      analyseBtn.style.display  = 'none';
-      const dets = data.detections || [];
-      detList.innerHTML = dets.length === 0
-        ? '<p style="color:var(--muted);font-size:.85rem;padding:8px 0">No bees detected.</p>'
-        : `<p style="color:var(--muted);font-size:.8rem;padding:4px 0 8px">${dets.length} bee${dets.length>1?'s':''} detected</p>` +
-          dets.map((d,i) => {
-            const cls = d.class_name.includes('clean') ? 'orange' : 'blue';
-            return `<div class="det-row">
-              <span class="det-cls"><span class="chip ${cls}" style="border:none;background:transparent;padding:0">
-                <span class="label">#${i+1}</span><span class="value">${d.class_name}</span>
-              </span></span>
-              <span class="det-conf">${(d.confidence*100).toFixed(0)}%</span>
-            </div>`;
-          }).join('');
-    }
+    analyseBtn.style.display = dets.length >= 2 ? 'flex' : 'none';
+    analyseBtn.disabled      = dets.length < 2;
+    analyseLabel.textContent = dets.length >= 2
+      ? `Analyse Behaviour (${dets.length} bees)`
+      : 'Need ≥2 bees for analysis';
 
     results.scrollIntoView({ behavior:'smooth', block:'start' });
   }
 
-  // ── Analyse behaviour ──────────────────────────────────────────────────────
+  // ── Behavioural analysis ───────────────────────────────────────────────────
   analyseBtn.addEventListener('click', async () => {
     if (!selectedFile || lastDetections.length === 0) return;
     analyseBtn.disabled = true;
@@ -908,7 +575,6 @@
     analysisSection.style.display = 'block';
     analysisLoading.style.display = 'block';
     analysisResults.style.display = 'none';
-
     analysisSection.scrollIntoView({ behavior:'smooth', block:'start' });
 
     const fd = new FormData();
@@ -919,7 +585,6 @@
       const resp = await fetch('/analyze', { method:'POST', body: fd });
       if (!resp.ok) { const e = await resp.json(); throw new Error(e.error || `HTTP ${resp.status}`); }
       const data = await resp.json();
-
       if (data.error) throw new Error(data.error);
       renderAnalysis(data);
     } catch (err) {
@@ -942,93 +607,47 @@
 
   // ── Render analysis ────────────────────────────────────────────────────────
   const ANALYSIS_META = {
-    directions: {
-      title: 'Heading Map',
-      tag:   'from scripts',
-      tagClass: '',
-      desc:  'Each arrow points from tail (kp1) to head (kp0). Orange = cleaning bee, green = normal bee. Shows the instantaneous facing direction of every detected bee.'
-    },
-    rose: {
-      title: 'Rose Diagram',
-      tag:   'from scripts',
-      tagClass: '',
-      desc:  'Polar histogram of heading directions. The cyan arrow shows the mean resultant vector. Rayleigh r measures alignment: 0 = random scatter, 1 = all facing the same way.'
-    },
-    alignment: {
-      title: 'Local Alignment Map',
-      tag:   'from scripts',
-      tagClass: '',
-      desc:  'Each bee is coloured by how aligned it is with its k nearest neighbours (green = well-aligned, red = misaligned). Reveals coordinated vs. isolated movers.'
-    },
-    flow: {
-      title: 'Spatial Flow Field',
-      tag:   'from scripts',
-      tagClass: '',
-      desc:  'Top: streamlines interpolated from bee headings — colour = vector magnitude. Bottom-left: divergence (red zones = bees spreading apart, blue = converging). Bottom-right: curl (vortex / rotational movement).',
-      wide:  true
-    },
-    chains: {
-      title: 'Following Chains',
-      tag:   'from scripts',
-      tagClass: '',
-      desc:  'A chain forms when bee A\'s head is close to bee B\'s tail and both face roughly the same direction. Chains are numbered and colour-coded. Dashed lines connect consecutive head→tail links.'
-    },
-    heatmap: {
-      title: 'Density Heatmap',
-      tag:   'new',
-      tagClass: 'new',
-      desc:  'Gaussian KDE of bee positions — hot colours show where bees concentrate on the comb. The crosshair marks the density peak. Useful for spotting activity hotspots.'
-    },
-    facing: {
-      title: 'Facing Pairs',
-      tag:   'new',
-      tagClass: 'new',
-      desc:  'Pairs of bees whose heads are close and whose headings substantially oppose each other (≥120°). These are candidate trophallaxis (food exchange) or antennation events.'
-    },
-    crowding: {
-      title: 'Crowding Index',
-      tag:   'new',
-      tagClass: 'new',
-      desc:  'For each bee, the number is how many other bees are within a fixed radius. Red = high local density (busy area), yellow = moderate, white = isolated. Circles show the counting radius.'
-    },
+    directions: { title:'Heading Map',         tag:'',      tagClass:'', desc:'Each arrow points from tail (kp1) to head (kp0). Orange = cleaning bee, green = normal bee.' },
+    rose:       { title:'Rose Diagram',        tag:'',      tagClass:'', desc:'Polar histogram of headings. Rayleigh r: 0=random, 1=all aligned.' },
+    alignment:  { title:'Local Alignment Map', tag:'',      tagClass:'', desc:'Each bee coloured by alignment with k nearest neighbours (green=aligned, red=misaligned).' },
+    flow:       { title:'Spatial Flow Field',  tag:'',      tagClass:'', desc:'Streamlines from bee headings. Divergence (spreading/converging) and curl (vortex).', wide:true },
+    chains:     { title:'Following Chains',    tag:'',      tagClass:'', desc:'Head-to-tail following sequences — numbered and colour-coded.' },
+    heatmap:    { title:'Density Heatmap',     tag:'new',   tagClass:'new', desc:'Gaussian KDE of bee positions — hot colours = activity hotspots.' },
+    facing:     { title:'Facing Pairs',        tag:'new',   tagClass:'new', desc:'Bees whose heads are close and headings oppose each other (≥120°) — trophallaxis candidates.' },
+    crowding:   { title:'Crowding Index',      tag:'new',   tagClass:'new', desc:'Number of bees within a fixed radius around each bee. Red=high density, white=isolated.' },
   };
 
   function renderAnalysis(data) {
     const stats = data.stats || {};
     const a     = data.analyses || {};
 
-    // ── Stats row
     const orderColor = stats.rayleigh_r > 0.5 ? 'green' : stats.rayleigh_r > 0.25 ? 'yellow' : 'orange';
     document.getElementById('analysis-stats-row').innerHTML = `
       <div class="chip blue">  <span class="label">Bees analysed</span><span class="value">${stats.n_bees ?? '–'}</span></div>
       <div class="chip orange"><span class="label">Cleaning</span><span class="value">${stats.n_cleaning ?? '–'}</span></div>
       <div class="chip green"> <span class="label">Normal</span><span class="value">${stats.n_normal ?? '–'}</span></div>
       <div class="chip ${orderColor}"><span class="label">Rayleigh r</span><span class="value">${stats.rayleigh_r ?? '–'} <span style="font-weight:400;color:var(--muted);font-size:.75em">(${stats.order_label ?? ''})</span></span></div>
-      <div class="chip teal"> <span class="label">Following chains</span><span class="value">${stats.n_chains ?? 0}  <span style="font-weight:400;color:var(--muted);font-size:.75em">(longest: ${stats.longest_chain ?? 0})</span></span></div>
+      <div class="chip teal"> <span class="label">Following chains</span><span class="value">${stats.n_chains ?? 0} <span style="font-weight:400;color:var(--muted);font-size:.75em">(longest: ${stats.longest_chain ?? 0})</span></span></div>
       <div class="chip teal"> <span class="label">Facing pairs</span><span class="value">${stats.n_facing_pairs ?? 0}</span></div>
     `;
 
-    // ── Analysis cards
     const grid = document.getElementById('analysis-grid');
     grid.innerHTML = '';
-
     for (const [key, meta] of Object.entries(ANALYSIS_META)) {
       const img_b64 = a[key];
-      if (!img_b64) continue;    // not computed (not enough bees)
-
+      if (!img_b64) continue;
       const card = document.createElement('div');
       card.className = 'analysis-card' + (meta.wide ? ' wide' : '');
       card.innerHTML = `
         <div class="analysis-card-header">
           ${meta.title}
-          <span class="tag ${meta.tagClass}">${meta.tag}</span>
+          ${meta.tag ? `<span class="tag ${meta.tagClass}">${meta.tag}</span>` : ''}
         </div>
         <img src="data:image/png;base64,${img_b64}" loading="lazy"/>
         <div class="analysis-desc">${meta.desc}</div>
       `;
       grid.appendChild(card);
     }
-
     analysisResults.style.display = 'block';
     analysisResults.scrollIntoView({ behavior:'smooth', block:'start' });
   }
@@ -1039,7 +658,6 @@
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 4000);
   }
-
 
   // ════════════════════════════════════════════════════════════════════════════
   // Pipeline comparison
@@ -1063,7 +681,6 @@
     const empty = document.getElementById('pipeline-empty');
     const wrap  = document.getElementById('pipeline-table-wrap');
 
-    // Normalise: results may be an object {pipeline_name: {label, metrics}} or an array
     if (results && !Array.isArray(results)) {
       results = Object.entries(results).map(([key, val]) => ({
         pipeline: key,
@@ -1080,33 +697,20 @@
     empty.style.display = 'none';
     wrap.style.display  = 'block';
 
-    // Sort by Pose mAP50 (YOLO) or F1 (KRCNN), highest first
-    const isYolo  = r => r.metrics.test_pose_mAP50 != null;
-    const getScore = r => r.metrics.test_pose_mAP50 ?? r.metrics.f1 ?? 0;
+    const getScore = r => r.metrics.test_pose_mAP50 ?? 0;
     results = [...results].sort((a,b) => getScore(b) - getScore(a));
 
-    // Summary chips
-    const best = results[0];
-    const done = results.length;
-    const bestScore  = getScore(best);
-    const isYoloBest = isYolo(best);
-    const scoreLabel = isYoloBest ? 'Meilleur Pose mAP50' : 'Meilleur F1';
-    const bestAP     = best.metrics.ap != null ? `<div class="chip yellow"><span class="label">Meilleur AP</span><span class="value">${(best.metrics.ap*100).toFixed(1)}%</span></div>` : '';
-    const bestRec    = best.metrics.recall != null ? `<div class="chip orange"><span class="label">Recall</span><span class="value">${(best.metrics.recall*100).toFixed(1)}%</span></div>` : '';
+    const best     = results[0];
+    const bestScore = getScore(best);
     document.getElementById('pipeline-summary-chips').innerHTML = `
-      <div class="chip blue"><span class="label">Variants entraînés</span><span class="value">${done} / 18</span></div>
-      <div class="chip teal"><span class="label">Meilleur pipeline</span><span class="value">${best.label}</span></div>
-      <div class="chip green"><span class="label">${scoreLabel}</span><span class="value">${(bestScore*100).toFixed(1)}%</span></div>
-      ${bestAP}${bestRec}
+      <div class="chip blue"><span class="label">Trained variants</span><span class="value">${results.length} / 18</span></div>
+      <div class="chip teal"><span class="label">Best pipeline</span><span class="value">${best.label}</span></div>
+      <div class="chip green"><span class="label">Best Pose mAP50</span><span class="value">${(bestScore*100).toFixed(1)}%</span></div>
     `;
 
     const maxScore = Math.max(...results.map(r => getScore(r)));
-
     const CONTRAST_CLASS = { original:'contrast-original', clahe:'contrast-clahe', retinex:'contrast-retinex' };
-    const FILTER_LABELS  = {
-      bilateral:'Bilateral', nlm:'NLM', bm3d:'BM3D',
-      snn:'SNN', kramer_bruckner:'KB', epoaf:'EPOAF'
-    };
+    const FILTER_LABELS  = { bilateral:'Bilateral', nlm:'NLM', bm3d:'BM3D', snn:'SNN', kramer_bruckner:'KB', epoaf:'EPOAF' };
 
     const tbody = document.getElementById('pipeline-tbody');
     tbody.innerHTML = '';
@@ -1116,27 +720,14 @@
       const cKey   = parts[0];
       const eKey   = parts[1];
       const isBest = idx === 0;
-      const yolo   = isYolo(r);
       const tr     = document.createElement('tr');
       if (isBest) tr.className = 'best-row';
 
-      // Primary metric: F1 (KRCNN) or Pose mAP50 (YOLO)
       const mainScore = getScore(r);
       const mainPct   = (mainScore / (maxScore || 1) * 100).toFixed(1);
-
-      // Secondary columns
-      const precVal  = yolo ? m.test_box_mAP50  : m.precision;
-      const recVal   = yolo ? null               : m.recall;
-      const apVal    = yolo ? null               : m.ap;
-      const pck10Val = yolo ? m.test_pose_mAP50_95 : m.pck10;
-      const trainMin = r.wall_time_s ? (r.wall_time_s / 60).toFixed(1) + ' min'
-                     : m.train_time_s ? (m.train_time_s / 60).toFixed(1) + ' min' : '—';
-
-      const fmtPct = v => v != null ? (v*100).toFixed(1)+'%' : '—';
-
-      // Color coding for F1 / AP cells
-      const f1Color = mainScore >= 0.7 ? 'var(--accent3)' : mainScore >= 0.5 ? 'var(--accent2)' : 'var(--muted)';
-      const apColor = (apVal != null && apVal >= 0.7) ? 'var(--accent3)' : (apVal != null && apVal >= 0.5) ? 'var(--accent2)' : 'var(--muted)';
+      const f1Color   = mainScore >= 0.5 ? 'var(--accent3)' : mainScore >= 0.3 ? 'var(--accent2)' : 'var(--muted)';
+      const fmtPct    = v => v != null ? (v*100).toFixed(1)+'%' : '—';
+      const trainMin  = m.train_time_s ? (m.train_time_s / 60).toFixed(1) + ' min' : '—';
 
       tr.innerHTML = `
         <td><span class="rank-badge">${isBest ? '★' : '#' + (idx+1)}</span></td>
@@ -1146,84 +737,21 @@
           ${fmtPct(mainScore)}
           <div class="bar-wrap"><div class="bar-fill" style="width:${mainPct}%;background:${f1Color}"></div></div>
         </td>
-        <td class="num">${fmtPct(precVal)}</td>
-        <td class="num">${fmtPct(recVal)}</td>
-        <td class="num" style="color:${apColor};">${fmtPct(apVal)}</td>
-        <td class="num">${fmtPct(pck10Val)}</td>
+        <td class="num">${fmtPct(m.test_box_mAP50)}</td>
+        <td class="num">${fmtPct(m.test_pose_mAP50_95)}</td>
+        <td class="num">${fmtPct(m.test_box_mAP50_95)}</td>
         <td class="num">${trainMin}</td>
       `;
       tbody.appendChild(tr);
     });
   }
 
-  // ── Pipeline charts ───────────────────────────────────────────────────────
-  async function loadPipelineCharts() {
-    const btn       = document.getElementById('charts-load-btn');
-    const loading   = document.getElementById('charts-loading');
-    const errDiv    = document.getElementById('charts-error');
-    const container = document.getElementById('charts-container');
-
-    btn.disabled       = true;
-    btn.textContent    = '⏳ Génération…';
-    loading.style.display  = 'block';
-    errDiv.style.display   = 'none';
-    container.style.display = 'none';
-
-    try {
-      const resp = await fetch('/pipeline_charts');
-      if (!resp.ok) {
-        const err = await resp.json();
-        throw new Error(err.error || `HTTP ${resp.status}`);
-      }
-      const charts = await resp.json();
-
-      const makeImg = (b64) => {
-        const img = document.createElement('img');
-        img.src   = 'data:image/png;base64,' + b64;
-        img.style.cssText = 'width:100%; border-radius:8px; border:1px solid #2e3450;';
-        return img;
-      };
-
-      if (charts.bar_f1) {
-        const d = document.getElementById('chart-bar');
-        d.innerHTML = '';
-        d.appendChild(makeImg(charts.bar_f1));
-      }
-      if (charts.scatter_pr) {
-        const d = document.getElementById('chart-scatter');
-        d.innerHTML = '';
-        d.appendChild(makeImg(charts.scatter_pr));
-      }
-      if (charts.pr_curves) {
-        const d = document.getElementById('chart-pr');
-        d.innerHTML = '';
-        d.appendChild(makeImg(charts.pr_curves));
-      } else {
-        document.getElementById('chart-pr').innerHTML =
-          '<p style="color:var(--muted);font-size:.8rem;padding:12px;">Courbes PR disponibles après le prochain entraînement (pipeline_train.py).</p>';
-      }
-
-      loading.style.display   = 'none';
-      container.style.display = 'block';
-    } catch(e) {
-      loading.style.display = 'none';
-      errDiv.textContent    = 'Erreur : ' + e.message;
-      errDiv.style.display  = 'block';
-    } finally {
-      btn.disabled    = false;
-      btn.textContent = '↻ Régénérer';
-    }
-  }
-
-  // Auto-load on page open
-  loadPipelineResults();
-
-  // ── Live training status polling ──────────────────────────────────────────
+  // ── Live training status polling ───────────────────────────────────────────
   let pipelinePollTimer = null;
 
   function formatEta(s) {
     if (!s || s <= 0) return '';
-    if (s < 60)  return `~${s}s left`;
+    if (s < 60)   return `~${s}s left`;
     if (s < 3600) return `~${Math.round(s/60)}m left`;
     return `~${(s/3600).toFixed(1)}h left`;
   }
@@ -1233,20 +761,16 @@
       const resp = await fetch('/pipeline_status');
       const st   = await resp.json();
 
-      const statusDiv    = document.getElementById('pipeline-training-status');
-      const emptyDiv     = document.getElementById('pipeline-empty');
-      const tableWrap    = document.getElementById('pipeline-table-wrap');
+      const statusDiv = document.getElementById('pipeline-training-status');
+      const emptyDiv  = document.getElementById('pipeline-empty');
+      const tableWrap = document.getElementById('pipeline-table-wrap');
 
       if (st.status === 'idle') {
-        // Check if we have results to show
-        if (!tableWrap.style.display || tableWrap.style.display === 'none') {
-          emptyDiv.style.display = 'block';
-        }
+        if (tableWrap.style.display === 'none') emptyDiv.style.display = 'block';
         statusDiv.style.display = 'none';
         stopPipelinePoll();
         return;
       }
-
       if (st.status === 'done') {
         statusDiv.style.display = 'none';
         loadPipelineResults();
@@ -1254,44 +778,25 @@
         return;
       }
 
-      // Status = 'training'
       statusDiv.style.display = 'block';
       emptyDiv.style.display  = 'none';
 
-      const epochPct   = Math.round((st.epoch || 0) / (st.total_epochs || 40) * 100);
+      const epochPct   = Math.round((st.epoch || 0) / (st.total_epochs || 30) * 100);
       const overallPct = st.overall_progress || 0;
 
-      document.getElementById('pt-pipeline-name').textContent =
-        `${st.pipeline_label || st.pipeline}`;
-      document.getElementById('pt-epoch-line').textContent =
-        `Epoch ${st.epoch} / ${st.total_epochs}` +
-        (st.patience != null ? `  ·  patience ${st.patience}/${st.patience_limit}` : '') +
-        (st.new_best ? '  ✓ new best' : '');
-      document.getElementById('pt-eta').textContent   = formatEta(st.eta_s);
-      document.getElementById('pt-count').textContent =
-        `${st.pipeline_index} / ${st.total_pipelines} pipelines`;
-      document.getElementById('pt-overall-pct').textContent = overallPct.toFixed(1) + '%';
-      document.getElementById('pt-overall-bar').style.width  = overallPct + '%';
-      document.getElementById('pt-epoch-pct').textContent    = epochPct + '%';
-      document.getElementById('pt-epoch-bar').style.width    = epochPct + '%';
+      document.getElementById('pt-pipeline-name').textContent = st.pipeline_label || st.pipeline;
+      document.getElementById('pt-epoch-line').textContent    = `Epoch ${st.epoch} / ${st.total_epochs}`;
+      document.getElementById('pt-eta').textContent           = formatEta(st.eta_s);
+      document.getElementById('pt-count').textContent         = `${st.pipeline_index} / ${st.total_pipelines} pipelines`;
+      document.getElementById('pt-overall-pct').textContent   = overallPct.toFixed(1) + '%';
+      document.getElementById('pt-overall-bar').style.width   = overallPct + '%';
+      document.getElementById('pt-epoch-pct').textContent     = epochPct + '%';
+      document.getElementById('pt-epoch-bar').style.width     = epochPct + '%';
 
-      // Show YOLO metrics (mAP50) if available, fall back to loss for KRCNN
       if (st.box_mAP50 != null || st.pose_mAP50 != null) {
         document.getElementById('pt-loss-chips').innerHTML = `
-          <div class="chip teal"><span class="label">Box mAP50</span>
-            <span class="value">${((st.box_mAP50||0)*100).toFixed(1)}%</span></div>
-          <div class="chip green"><span class="label">Pose mAP50</span>
-            <span class="value">${((st.pose_mAP50||0)*100).toFixed(1)}%</span></div>
-        `;
-      } else if (st.train_loss != null) {
-        document.getElementById('pt-loss-chips').innerHTML = `
-          <div class="chip"><span class="label">Train loss</span>
-            <span class="value">${(st.train_loss||0).toFixed(4)}</span></div>
-          <div class="chip teal"><span class="label">Val loss</span>
-            <span class="value">${(st.val_loss||0).toFixed(4)}</span></div>
-          <div class="chip green"><span class="label">Best val</span>
-            <span class="value">${(st.best_val_loss||0).toFixed(4)}
-            <span style="color:var(--muted);font-size:.75em">(ep ${st.best_epoch||0})</span></span></div>
+          <div class="chip teal"><span class="label">Box mAP50</span><span class="value">${((st.box_mAP50||0)*100).toFixed(1)}%</span></div>
+          <div class="chip green"><span class="label">Pose mAP50</span><span class="value">${((st.pose_mAP50||0)*100).toFixed(1)}%</span></div>
         `;
       }
 
@@ -1305,11 +810,9 @@
         compWrap.style.display = 'none';
       }
 
-      // Also refresh the results table in the background
       if (completed.length > 0 && tableWrap.style.display === 'none') {
         loadPipelineResults();
       }
-
     } catch(_) { /* network blip */ }
   }
 
@@ -1320,216 +823,11 @@
   }
 
   function stopPipelinePoll() {
-    if (pipelinePollTimer) {
-      clearInterval(pipelinePollTimer);
-      pipelinePollTimer = null;
-    }
+    if (pipelinePollTimer) { clearInterval(pipelinePollTimer); pipelinePollTimer = null; }
   }
 
-  // Start polling immediately on page load
+  loadPipelineResults();
   startPipelinePoll();
-
-  // ════════════════════════════════════════════════════════════════════════════
-  // Video analysis
-  // ════════════════════════════════════════════════════════════════════════════
-
-  const videoDropZone   = document.getElementById('video-drop-zone');
-  const videoInput      = document.getElementById('video-input');
-  const videoDropText   = document.getElementById('video-drop-text');
-  const videoRunBtn     = document.getElementById('video-run-btn');
-  const videoBtnLabel   = document.getElementById('video-btn-label');
-  const videoSpinner    = document.getElementById('video-spinner');
-  const videoProgress   = document.getElementById('video-progress');
-  const progressFill    = document.getElementById('progress-fill');
-  const videoStatusText = document.getElementById('video-status-text');
-  const progressChips   = document.getElementById('progress-chips');
-  const videoResults    = document.getElementById('video-results');
-  const frameStepSlider = document.getElementById('frame-step-slider');
-  const frameStepLabel  = document.getElementById('frame-step-label');
-  const videoScoreSlider= document.getElementById('video-score-slider');
-  const videoScoreLabel = document.getElementById('video-score-label');
-
-  let selectedVideoFile = null;
-  let videoJobId        = null;
-  let videoPollTimer    = null;
-
-  // ── Sliders ────────────────────────────────────────────────────────────────
-  frameStepSlider.addEventListener('input', () => {
-    frameStepLabel.textContent = frameStepSlider.value;
-  });
-  videoScoreSlider.addEventListener('input', () => {
-    videoScoreLabel.textContent = parseFloat(videoScoreSlider.value).toFixed(2);
-  });
-
-  // ── Drop zone ──────────────────────────────────────────────────────────────
-  videoDropZone.addEventListener('dragover', e => {
-    e.preventDefault(); videoDropZone.classList.add('drag-over');
-  });
-  videoDropZone.addEventListener('dragleave', () => videoDropZone.classList.remove('drag-over'));
-  videoDropZone.addEventListener('drop', e => {
-    e.preventDefault(); videoDropZone.classList.remove('drag-over');
-    const f = e.dataTransfer.files[0];
-    if (f && f.type.startsWith('video/')) handleVideoFile(f);
-    else showToast('Please drop a video file.');
-  });
-  videoInput.addEventListener('change', () => {
-    if (videoInput.files[0]) handleVideoFile(videoInput.files[0]);
-  });
-
-  function handleVideoFile(file) {
-    selectedVideoFile = file;
-    videoDropText.innerHTML =
-      `<strong>${file.name}</strong>  (${(file.size / 1024 / 1024).toFixed(1)} MB)`;
-    videoRunBtn.disabled = false;
-    videoProgress.style.display = 'none';
-    videoResults.style.display  = 'none';
-  }
-
-  // ── Submit ─────────────────────────────────────────────────────────────────
-  videoRunBtn.addEventListener('click', async () => {
-    if (!selectedVideoFile) return;
-
-    // Stop any existing poll
-    if (videoPollTimer) { clearInterval(videoPollTimer); videoPollTimer = null; }
-
-    videoRunBtn.disabled      = true;
-    videoSpinner.style.display = 'block';
-    videoBtnLabel.textContent  = 'Uploading…';
-    videoProgress.style.display = 'block';
-    progressFill.style.width   = '0%';
-    videoStatusText.textContent = 'Uploading video…';
-    progressChips.innerHTML    = '';
-    videoResults.style.display  = 'none';
-
-    const fd = new FormData();
-    fd.append('video',       selectedVideoFile);
-    fd.append('frame_step',  frameStepSlider.value);
-    fd.append('score',       videoScoreSlider.value);
-
-    try {
-      const resp = await fetch('/predict_video', { method: 'POST', body: fd });
-      if (!resp.ok) {
-        const e = await resp.json();
-        throw new Error(e.error || `HTTP ${resp.status}`);
-      }
-      const data = await resp.json();
-      videoJobId = data.job_id;
-      videoBtnLabel.textContent = 'Processing…';
-      videoStatusText.textContent = 'Job started — analysing frames…';
-      // Start polling
-      videoPollTimer = setInterval(pollVideoJob, 1500);
-    } catch (err) {
-      showToast('Upload failed: ' + err.message);
-      resetVideoBtn();
-    }
-  });
-
-  async function pollVideoJob() {
-    if (!videoJobId) return;
-    try {
-      const resp = await fetch(`/video_status/${videoJobId}`);
-      if (!resp.ok) return;
-      const job = await resp.json();
-
-      // Update progress bar
-      progressFill.style.width = (job.progress || 0) + '%';
-
-      const total  = job.total_frames || 0;
-      const cur    = job.current_frame || 0;
-      const done   = job.processed_frames || 0;
-      const fps    = job.fps ? job.fps.toFixed(1) : '?';
-      const bees   = job.last_n_bees ?? '–';
-      const info   = job.video_info || {};
-
-      videoStatusText.textContent =
-        job.status === 'done'  ? `Done — processed ${done} frames` :
-        job.status === 'error' ? `Error: ${job.message}` :
-        `Frame ${cur} / ${total}  (${job.progress || 0}%)`;
-
-      progressChips.innerHTML = `
-        <div class="chip"><span class="label">Frames done</span><span class="value">${done}</span></div>
-        <div class="chip blue"><span class="label">Last bees</span><span class="value">${bees}</span></div>
-        ${info.fps ? `<div class="chip"><span class="label">Source FPS</span><span class="value">${parseFloat(info.fps).toFixed(1)}</span></div>` : ''}
-        ${info.W  ? `<div class="chip"><span class="label">Resolution</span><span class="value">${info.W}×${info.H}</span></div>` : ''}
-      `;
-
-      if (job.status === 'done') {
-        clearInterval(videoPollTimer); videoPollTimer = null;
-        renderVideoResults(job);
-        resetVideoBtn();
-      } else if (job.status === 'error') {
-        clearInterval(videoPollTimer); videoPollTimer = null;
-        showToast('Video processing failed: ' + job.message);
-        resetVideoBtn();
-      }
-    } catch (_) { /* network blip — keep polling */ }
-  }
-
-  function resetVideoBtn() {
-    videoRunBtn.disabled      = false;
-    videoSpinner.style.display = 'none';
-    videoBtnLabel.textContent  = 'Process Video';
-  }
-
-  // ── Render results ─────────────────────────────────────────────────────────
-  function renderVideoResults(job) {
-    videoResults.style.display = 'block';
-
-    const s = job.summary || {};
-    const chips = document.getElementById('video-summary-chips');
-    const avgR  = s.avg_rayleigh_r != null ? s.avg_rayleigh_r.toFixed(3) : '–';
-    chips.innerHTML = `
-      <div class="chip blue">  <span class="label">Frames</span><span class="value">${s.processed_frames ?? '–'}</span></div>
-      <div class="chip">       <span class="label">Duration</span><span class="value">${s.duration_s ?? '–'}s</span></div>
-      <div class="chip">       <span class="label">Frame step</span><span class="value">1/${s.frame_step ?? '–'}</span></div>
-      <div class="chip green"> <span class="label">Avg bees</span><span class="value">${s.avg_bees ?? '–'}</span></div>
-      <div class="chip yellow"><span class="label">Max bees</span><span class="value">${s.max_bees ?? '–'}</span></div>
-      <div class="chip teal">  <span class="label">Avg Rayleigh r</span><span class="value">${avgR}</span></div>
-      <div class="chip orange"><span class="label">Cleaning detections</span><span class="value">${s.total_cleaning_detections ?? 0}</span></div>
-    `;
-
-    // Download link
-    const dlBtn = document.getElementById('video-download-btn');
-    dlBtn.href = `/video_download/${videoJobId}`;
-
-    // Key frames gallery
-    const gallery = document.getElementById('kf-gallery');
-    gallery.innerHTML = '';
-    (job.key_frames || []).forEach(kf => {
-      const div = document.createElement('div');
-      div.className = 'kf-thumb';
-      div.innerHTML = `
-        <img src="data:image/jpeg;base64,${kf.img}" loading="lazy"/>
-        <div class="kf-label">
-          <span>${kf.time.toFixed(1)}s</span>
-          <span>${kf.n_bees} bee${kf.n_bees !== 1 ? 's' : ''}</span>
-        </div>`;
-      gallery.appendChild(div);
-    });
-
-    // Timeline charts
-    const charts = document.getElementById('timeline-charts');
-    charts.innerHTML = '';
-    const CHART_ORDER = ['bee_counts', 'rayleigh', 'heading', 'cleaning_ratio'];
-    const CHART_LABEL = {
-      bee_counts:     'Bee counts over time',
-      rayleigh:       'Heading coherence (Rayleigh r)',
-      heading:        'Mean heading direction',
-      cleaning_ratio: 'Cleaning bee fraction',
-    };
-    CHART_ORDER.forEach(key => {
-      const b64 = (job.plots || {})[key];
-      if (!b64) return;
-      const wrap = document.createElement('div');
-      wrap.className = 'timeline-chart';
-      wrap.innerHTML = `
-        <p class="section-label" style="margin-bottom:6px;">${CHART_LABEL[key]}</p>
-        <img src="data:image/png;base64,${b64}" loading="lazy"/>`;
-      charts.appendChild(wrap);
-    });
-
-    videoResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
 </script>
 </body>
 </html>

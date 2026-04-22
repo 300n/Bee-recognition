@@ -1,7 +1,7 @@
 """
 bee_analysis.py
 ---------------
-Behavioural analyses computed from Keypoint R-CNN predictions.
+Behavioural analyses computed from YOLOv8-pose predictions.
 
 Analyses:
   1. Heading map        – arrows showing which way each bee faces

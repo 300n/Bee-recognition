@@ -209,7 +209,9 @@ def train_pipeline(pipeline_name: str, args, device: str,
             batch       = args.batch,
             device      = device,
             workers     = 0,          # safer with temp dirs on macOS
-            patience    = args.patience,
+            cache       = False,        # ram cache causes OOM on MPS unified memory (MacBook Air)
+            patience    = 0,             # EarlyStopping disabled — val metrics unreliable on MPS
+            val         = False,         # disable per-epoch val — NMS timeout on MPS corrupts metrics
             project     = str(run_dir.resolve()),
             name        = "run",
             exist_ok    = True,
@@ -221,8 +223,8 @@ def train_pipeline(pipeline_name: str, args, device: str,
             degrees     = 10.0,
             translate   = 0.1,
             scale       = 0.3,
-            hsv_h       = 0.015,
-            hsv_s       = 0.4,
+            hsv_h       = 0.0,
+            hsv_s       = 0.0,
             hsv_v       = 0.3,
             mosaic      = 0.5,
         )
@@ -234,9 +236,11 @@ def train_pipeline(pipeline_name: str, args, device: str,
         metrics = extract_metrics(results_csv)
         metrics["train_time_s"] = round(train_elapsed, 1)
 
-        # Evaluate on test split
+        # Evaluate on test split — use last.pt (val=False → no best.pt)
+        last_weights = run_dir / "run" / "weights" / "last.pt"
         best_weights = run_dir / "run" / "weights" / "best.pt"
-        if best_weights.exists():
+        eval_weights = last_weights if last_weights.exists() else best_weights
+        if eval_weights.exists():
             _write_status({
                 "status": "evaluating",
                 "pipeline": pipeline_name,
@@ -248,11 +252,12 @@ def train_pipeline(pipeline_name: str, args, device: str,
                 "total_epochs": args.epochs,
                 "completed": completed,
             })
-            eval_model = YOLO(str(best_weights))
+            eval_model = YOLO(str(eval_weights))
             val_res = eval_model.val(
                 data    = str(yaml_path.resolve()),
                 split   = "test",
                 device  = device,
+                batch   = 8,
                 verbose = False,
             )
             # Pull numeric results from the validator
@@ -286,7 +291,7 @@ def main():
     args = parser.parse_args()
 
     if not YAML_TEMPLATE.exists():
-        raise FileNotFoundError("bee_pose.yaml not found — run yolo_convert.py first")
+        raise FileNotFoundError("bee_pose.yaml not found in App/")
 
     pipelines = args.pipelines or PIPELINE_NAMES
 
